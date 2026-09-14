@@ -17,7 +17,6 @@ RUN poetry config virtualenvs.create false
 
 
 
-# instalamos UNICAMENTE entorno (--no-root), si no fallo de que no este el paquete rsfc_runner
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root
 

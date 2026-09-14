@@ -1,3 +1,4 @@
 [submodule "containers/resqui_container/QualityPipelines-2.0"]
     path = containers/resqui_container/QualityPipelines-2.0
     url = https://github.com/SergioZSZ/QualityPipelines
+    branch = main

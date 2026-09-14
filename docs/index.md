@@ -25,4 +25,4 @@ SQOO descubre repositorios de GitHub, extrae sus metadatos, evalúa la calidad d
 
 SOCA compara el inventario actual con el estado anterior. Los repositorios nuevos o modificados se procesan mediante SOCA, RSFC y RESQUI, mientras que los eliminados se retiran de las salidas persistidas. sw-metadata-bot conserva una snapshot completa, el portal se regenera y DashVERSE solo recibe assessments nuevos.
 
-Consulta [Workflow](flujo.md) para el detalle y [Instalación](instalacion.md) para desplegar el sistema.
+Consulta [Instalación](instalacion.md) para desplegar el sistema.

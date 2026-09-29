@@ -5,15 +5,13 @@
 ### 1. Clonar el repositorio
 
 ```bash
-git clone --recurse-submodules https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git
+git clone https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git
 cd Software-Quality-Observatory-Orchestrator
 ```
 
-En una copia existente:
+RESQUI/QualityPipelines esta incluido como codigo fuente raw en `containers/resqui_container/QualityPipelines`. La copia local usada por la imagen `resqui-heavy` corresponde al commit upstream `98eb8efb83bd17e8e020bf11e8195b204c9453fd` de `main` en `EVERSE-ResearchSoftware/QualityPipelines`.
 
-```bash
-git submodule update --init --recursive
-```
+No hace falta ejecutar ningun paso adicional de descarga de dependencias para RESQUI.
 
 ### 2. Configurar el entorno
 

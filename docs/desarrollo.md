@@ -30,7 +30,7 @@ Los resultados se guardan en `outputs/rsfc/<project>/<owner>_<repo>/`.
 
 ## RESQUI
 
-`resqui-heavy` incorpora QualityPipelines como submódulo y forma parte del workflow modular. Sus workers consumen `resqui_jobs`, ejecutan la configuración seleccionada y guardan `resqui_summary.json` en `outputs/resqui/<project>/<owner>_<repo>/`.
+`resqui-heavy` incorpora QualityPipelines/RESQUI como codigo fuente raw en `containers/resqui_container/QualityPipelines` y forma parte del workflow modular. La copia local corresponde al commit upstream `98eb8efb83bd17e8e020bf11e8195b204c9453fd` de `main` en `EVERSE-ResearchSoftware/QualityPipelines`. Sus workers consumen `resqui_jobs`, ejecutan la configuración seleccionada y guardan `resqui_summary.json` en `outputs/resqui/<project>/<owner>_<repo>/`.
 
 El volumen `sqoo_resqui_work` permite que el worker y los contenedores de plugins compartan el workspace. `RESQUI_SHARED_WORKDIR` y `RESQUI_DOCKER_WORK_VOLUME` configuran este comportamiento.
 

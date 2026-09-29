@@ -72,7 +72,7 @@ Results are stored in `outputs/rsfc/<project>/<owner>_<repo>/`.
 
 ### RESQUI
 
-`resqui-heavy` includes QualityPipelines as a submodule and is part of the modular workflow. Its workers consume `resqui_jobs`, run the selected configuration and store `resqui_summary.json` in `outputs/resqui/<project>/<owner>_<repo>/`.
+`resqui-heavy` includes QualityPipelines/RESQUI as vendored raw source under `containers/resqui_container/QualityPipelines` and is part of the modular workflow. The local source corresponds to upstream commit `98eb8efb83bd17e8e020bf11e8195b204c9453fd` from `EVERSE-ResearchSoftware/QualityPipelines` `main`. Its workers consume `resqui_jobs`, run the selected configuration and store `resqui_summary.json` in `outputs/resqui/<project>/<owner>_<repo>/`.
 
 The `sqoo_resqui_work` volume allows the worker and plugin containers to share the workspace. `RESQUI_SHARED_WORKDIR` and `RESQUI_DOCKER_WORK_VOLUME` configure this behavior.
 
@@ -127,7 +127,7 @@ The `Conf` node defines:
 
 - Docker Engine or Docker Desktop with Compose v2.
 - Python 3.11 or 3.12 for local development.
-- Git with submodule support.
+- Git.
 - GitHub token recommended to avoid the rate limit and publish issues.
 
 On Windows, Docker Desktop must have WSL integration enabled if DashVERSE is deployed.
@@ -217,26 +217,20 @@ Keep in mind:
 
 Follow these steps in order.
 
-#### 0. Import the repository submodules
+#### 0. Check the vendored QualityPipelines source
 
-SQOO uses `containers/resqui_container/QualityPipelines-2.0` as a submodule to include the RESQUI/QualityPipelines source code.
+SQOO includes RESQUI/QualityPipelines as raw source in `containers/resqui_container/QualityPipelines`. The vendored source is pinned in the documentation to upstream commit `98eb8efb83bd17e8e020bf11e8195b204c9453fd` from `EVERSE-ResearchSoftware/QualityPipelines` `main`.
 
 If cloning the repository from scratch, use:
 
 ```bash
-git clone --recurse-submodules https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git
+git clone https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git
 ```
 
-If the repository was already cloned or `git pull` was just run, execute from the SQOO root:
+No extra dependency checkout step is required for RESQUI. To check that the local source is present:
 
 ```bash
-git submodule update --init --recursive
-```
-
-To check that the submodule has been downloaded:
-
-```bash
-git submodule status
+test -d containers/resqui_container/QualityPipelines
 ```
 
 #### 1. Build Docker images

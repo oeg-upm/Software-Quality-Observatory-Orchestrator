@@ -4,7 +4,7 @@
 
 - Docker Engine o Docker Desktop con Compose v2.
 - Python 3.11 o 3.12 para desarrollo local.
-- Git con soporte de submódulos.
+- Git.
 - Token de GitHub recomendado para evitar el rate limit y publicar issues.
 
 En Windows, Docker Desktop debe tener activada la integración con WSL si se despliega DashVERSE.

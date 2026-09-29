@@ -11,8 +11,8 @@ __pycache__/
 **/.env/
 
 # ResQui / QualityPipelines clonado con entorno virtual
-QualityPipelines-2.0/venv/
-QualityPipelines-2.0/.venv/
+QualityPipelines/venv/
+QualityPipelines/.venv/
 
 # Symlinks/venvs problemáticos
 **/lib64

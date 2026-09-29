@@ -85,7 +85,7 @@ Los resultados se guardan en `outputs/rsfc/<project>/<owner>_<repo>/`.
 
 ### RESQUI
 
-`resqui-heavy` incorpora QualityPipelines como submódulo y forma parte del workflow modular. Sus workers consumen `resqui_jobs`, ejecutan la configuración seleccionada y guardan `resqui_summary.json` en `outputs/resqui/<project>/<owner>_<repo>/`.
+`resqui-heavy` incorpora QualityPipelines/RESQUI como codigo fuente raw en `containers/resqui_container/QualityPipelines` y forma parte del workflow modular. El codigo local corresponde al commit upstream `98eb8efb83bd17e8e020bf11e8195b204c9453fd` de `main` en `EVERSE-ResearchSoftware/QualityPipelines`. Sus workers consumen `resqui_jobs`, ejecutan la configuración seleccionada y guardan `resqui_summary.json` en `outputs/resqui/<project>/<owner>_<repo>/`.
 
 El volumen `sqoo_resqui_work` permite que el worker y los contenedores de plugins compartan el workspace. `RESQUI_SHARED_WORKDIR` y `RESQUI_DOCKER_WORK_VOLUME` configuran este comportamiento.
 
@@ -148,7 +148,7 @@ El nodo `Conf` define:
 
 - Docker Engine o Docker Desktop con Compose v2.
 - Python 3.11 o 3.12 para desarrollo local.
-- Git con soporte de submódulos.
+- Git.
 - Token de GitHub recomendado para evitar el rate limit y publicar issues.
 
 En Windows, Docker Desktop debe tener activada la integración con WSL si se despliega DashVERSE.
@@ -264,14 +264,14 @@ Siguiendo los pasos en orden secuencial:
 
 Las imágenes pueden construirse con `scripts/build-docker-images.sh` en WSL/Linux o `scripts/build-docker-images.ps1` en PowerShell. Los mandatos equivalentes son:
 
-0. Importar los submodulos del repositorio:
-   - SQOO usa `containers/resqui_container/QualityPipelines-2.0` como submodulo para incluir el codigo fuente de RESQUI/QualityPipelines.
+0. Comprobar el codigo fuente vendorizado de QualityPipelines:
+   - SQOO incluye RESQUI/QualityPipelines como codigo fuente raw en `containers/resqui_container/QualityPipelines`.
+   - El codigo local corresponde al commit upstream `98eb8efb83bd17e8e020bf11e8195b204c9453fd` de `main` en `EVERSE-ResearchSoftware/QualityPipelines`.
    - Si se clona el repositorio desde cero, usar:
-      - Mandato: `git clone --recurse-submodules https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git`
-   - Si el repositorio ya estaba clonado o se acaba de hacer `git pull`, ejecutar desde la raiz de SQOO:
-      - Mandato: `git submodule update --init --recursive`
-   - Para comprobar que el submodulo esta descargado:
-      - Mandato: `git submodule status`
+      - Mandato: `git clone https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git`
+   - No hace falta ejecutar ningun paso adicional de descarga de dependencias para RESQUI.
+   - Para comprobar que el codigo local esta presente:
+      - Mandato: `Test-Path containers\resqui_container\QualityPipelines`
 
 1. Generar imágenes  docker:
    - `soca-heavy`:

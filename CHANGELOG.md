@@ -12,9 +12,8 @@
 - Documentada la reutilización de metadatos SOCA mediante `rsfc --metadata`.
 
 # RESQUI
-
+- Migrada la integracion de QualityPipelines desde submodulo a codigo raw en `containers/resqui_container/QualityPipelines`, fijando la referencia al commit upstream `98eb8efb83bd17e8e020bf11e8195b204c9453fd`.
 
 # DashVERSE
-
 
 

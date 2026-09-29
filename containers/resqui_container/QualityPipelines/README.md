@@ -1,0 +1,72 @@
+# EVERSE Software Quality Pipelines
+
+![PyPI - Version](https://img.shields.io/pypi/v/resqui)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20553350-blue)](https://doi.org/10.5281/zenodo.20553350)
+
+The EVERSE Software Quality Pipelines provide
+
+1) the command line tool `resqui` to check a configurable set of software quality indicators on research software via external plugins (tools); 
+2) GitHub Action to run the pipeline on a github repository.
+
+Please read and adhere to our contribution guidelines on  `CONTRIBUTING.md` and our [Code of Conduct](https://everse.software/network/code_of_conduct/). 
+
+## Documentation
+
+### Quality Pipelines
+
+An overview on the quality pipelines is given below.
+The complete documentation of the quality pipelines are available at the project's [Github Pages](https://everse.software/QualityPipelines/), please read through those pages if you encounter issues and questions.
+
+1) `resqui`  can be installed - preferably within a Python virtual environment - with the requirements of `Docker` and `Python 3.9+`
+
+- using pip:
+
+```
+pip install resqui
+```
+
+- or from source:
+
+```
+git clone https://github.com/EVERSE-ResearchSoftware/QualityPipelines.git
+cd QualityPipelines
+pip install .
+```
+and can be executed with these options:
+
+```
+$ resqui -h
+Usage:
+    resqui [options]
+    resqui indicators
+
+Options:
+    -u <repository_url>   URL of the repository to be analyzed (GitHub URLs, Zenodo DOIs and URLs accepted). If omitted, resqui reads the remote repository URL from the current working directory's `.git` metadata.
+    -c <config_file>      Path to the configuration file.
+    -o <output_file>       Path to the JSON output file [default: resqui_summary.json].
+    --md <markdown_report> Path to a Markdown report to also generate from the JSON output.
+    -t <github_token>     GitHub API token.
+    -d <dashverse_token>  DashVerse API token.
+    -b <branch>           The Git branch to be checked.
+    -v                    Verbose output.
+    --version             Show the version of the script.
+    --help                Show this help message.
+ ```
+
+
+2) The GitHub Action to include in CI/CDs pipeline is available in [this repository](https://github.com/EVERSE-ResearchSoftware/resqui-github-action).
+
+### EVERSE Services
+
+EVERSE provides a set of services to assess and improve the quality of research software, visit the [EVERSE homepage](https://everse.software) for more information.
+
+A simplified workflow to improve the software quality is: 
+Find the practices on `RSQKit` (1), get an overview on tools and services to measure and improve the quality on the `TechRadar` (2), run an assessment on your own or your groups software via resqui (3) and display the results on `DashVERSE` (4), assess and repeat from (1).
+
+More information the services can be found at:
+
+1) Research Software Quality Kit - [RSQKit](https://everse.software/services/rsqkit/)
+2) Technology Radar - [TechRadar](https://everse.software/services/techradar/)
+3) Quality Pipelines - `resqui` which is this project
+4) Software Quality Dashboards - [DashVERSE](https://everse.software/services/dashverse/)
+

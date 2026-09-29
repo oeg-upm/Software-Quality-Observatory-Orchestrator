@@ -1,6 +1,6 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18879858.svg)](https://doi.org/10.5281/zenodo.18879858)[![Project Status: Active ](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)[![GitHub release](https://img.shields.io/github/v/release/oeg-upm/Software-Quality-Observatory-Orchestrator?include_prereleases)](https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/releases)![RSFC_Coverage](https://img.shields.io/badge/rsfc-coverage_83%25-green)
 
-# Automated Software Assessment Orchestration and Catalog Generation
+# Software Quality Observatory Orchestrator
 
 Detailed documentation: <https://software-quality-observatory-orchestrator-tfg.readthedocs.io/es/latest/>
 

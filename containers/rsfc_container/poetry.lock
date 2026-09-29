@@ -2396,7 +2396,7 @@ files = [
 
 [[package]]
 name = "rsfc"
-version = "0.1.9"
+version = "0.2.0"
 description = "EVERSE Research Software Fairness Checks"
 optional = false
 python-versions = ">=3.11,<3.13"
@@ -2488,7 +2488,7 @@ xgboost = "2.1.4"
 
 [package.source]
 type = "directory"
-url = "rsfc-0.1.9"
+url = "rsfc-0.2.0"
 
 [[package]]
 name = "ruamel-yaml"
@@ -3039,4 +3039,4 @@ scikit-learn = ["scikit-learn"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "51aa12a394df762e247abd3cd6dba41e8a39be373bad1c2a4f05830c51262367"
+content-hash = "984592cf39b6b2d678a6811391b12c59b4400f83e441d49980809fae10cbd90f"

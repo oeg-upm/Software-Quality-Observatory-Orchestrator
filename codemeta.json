@@ -15,14 +15,14 @@
     "Docker",
     "DashVERSE"
   ],
-  "url": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG",
-  "codeRepository": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG",
-  "downloadUrl": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG/releases",
-  "issueTracker": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG/issues",
-  "readme": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG/blob/main/README.md",
-  "softwareHelp": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG/tree/main/docs",
-  "buildInstructions": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG/blob/main/docs/instalacion.md",
-  "releaseNotes": "https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG/blob/main/CHANGELOG.md",
+  "url": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator",
+  "codeRepository": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator",
+  "downloadUrl": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/releases",
+  "issueTracker": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/issues",
+  "readme": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/blob/main/README.md",
+  "softwareHelp": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/tree/main/docs",
+  "buildInstructions": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/blob/main/docs/instalacion.md",
+  "releaseNotes": "https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/blob/main/CHANGELOG.md",
   "identifier": "https://doi.org/10.5281/zenodo.18879858",
   "license": "https://spdx.org/licenses/Apache-2.0",
 
@@ -99,7 +99,7 @@
     "https://github.com/oeg-upm/rsfc",
     "https://github.com/EVERSE-ResearchSoftware/QualityPipelines",
     "https://github.com/EVERSE-ResearchSoftware/DashVERSE",
-    "https://github.com/SoftwareUnderstanding/sw-metadata-bot",
+    "https://github.com/SoftwareUnderstanding/rsmetacheck-bot",
     "https://github.com/SoftwareUnderstanding/RsMetaCheck"
   ]
 }

@@ -1,0 +1,28 @@
+name: Setup uv with caching
+description: Install Python, uv, and sync dependencies with caching
+
+inputs:
+  dependency-group:
+    description: 'Dependency group to sync (e.g., dev, test, docs)'
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      id: setup-python
+      uses: actions/setup-python@v6
+      with:
+        python-version-file: ".python-version"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
+    - name: Sync dependencies
+      shell: bash
+      env:
+        EXTRA: ${{ inputs.dependency-group }}
+      run: uv sync --locked ${EXTRA:+--extra "$EXTRA"}

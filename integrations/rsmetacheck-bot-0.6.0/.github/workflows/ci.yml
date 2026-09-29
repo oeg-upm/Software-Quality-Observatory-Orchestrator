@@ -1,0 +1,261 @@
+name: CI (uv)
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["*"]
+  release:
+    types: [published]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+        with:
+          dependency-group: dev
+
+      - name: Ruff format (check)
+        run: uv run --extra dev ruff format --check
+
+      - name: Ruff check
+        run: uv run --extra dev ruff check --output-format=github
+
+  security:
+    name: Security (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+        with:
+          dependency-group: dev
+
+      - name: Run Bandit security linter
+        run: uv run --extra dev bandit -c pyproject.toml -r src/rsmetacheck_bot/
+
+  interrogate:
+      name: Interrogate badge
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+        with:
+          dependency-group: dev
+
+      - name: Interrogate (docstring coverage)
+        run: uv run --extra dev interrogate -c pyproject.toml -v src/rsmetacheck_bot/
+      
+      - name: Commit interrogate badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add interrogate_badge.svg
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: update interrogate badge"
+          git push
+        continue-on-error: true
+        
+
+  test:
+    name: Test (pytest unit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+        with:
+          dependency-group: test
+
+      - name: Runtime smoke checks
+        run: |
+          uv run python -c "import rsmetacheck_bot; import rsmetacheck; print('Runtime imports OK')"
+          uv run rsmetacheck-bot run-analysis --help
+          uv run rsmetacheck-bot publish --help
+
+      - name: Run pytest unit tests with coverage
+        run: |
+          uv run --extra test pytest -m "not integration_gitlab" \
+            --cov=src/rsmetacheck_bot \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            tests/
+            
+      - name: Generate coverage badge
+        run: uv run --extra test genbadge coverage -i coverage.xml -o coverage.svg
+        continue-on-error: true
+
+      - name: Commit coverage badge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add coverage.svg
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: update coverage badge"
+          git push
+        continue-on-error: true
+
+  test-small-analysis:
+    name: Minimal integration test (small analysis)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+
+      - name: Run small analysis without publishing
+        run: uv run rsmetacheck-bot run-analysis --config-file assets/example_list_repo.json
+
+  test-gitlab-integration:
+    name: Test (GitLab integration)
+    runs-on: ubuntu-latest
+    env:
+      GITLAB_API_TOKEN: ${{ secrets.GITLAB_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+        with:
+          dependency-group: test
+
+      - name: Skip integration tests when token is not configured
+        if: ${{ env.GITLAB_API_TOKEN == '' }}
+        run: |
+          echo "GITLAB_API_TOKEN is not configured; skipping GitLab integration tests."
+          exit 0
+
+      - name: Verify GitLab token before integration tests
+        run: uv run rsmetacheck-bot verify-tokens --gitlab
+
+      - name: Run GitLab integration tests
+        run: uv run --extra test pytest --run-integration-gitlab -m "integration_gitlab" tests/test_gitlab_integration.py
+
+
+  test-zenodo-connection:
+    name: Test Zenodo connection
+    runs-on: ubuntu-latest
+    container: 
+      image: registry.gitlab.com/escape-ossr/eossr:v2.2.0
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Convert CodeMeta to Zenodo metadata
+        uses: escape2020/codemeta2zenodo@v1.3.0
+        with:
+          overwrite: true
+
+      - name: Change publicationDate in .zenodo.json to current date (fix eossr)
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          sed -i "s/\"publicationDate\": \".*\"/\"publicationDate\": \"$TODAY\"/" .zenodo.json
+
+      - name: Verify Zenodo token before integration tests
+        env:
+          ZENODO_ACCESS_TOKEN: ${{ secrets.ZENODO_ACCESS_TOKEN }}
+        if: ${{ env.ZENODO_ACCESS_TOKEN != '' }}
+        run: |
+          eossr-check-connection-zenodo \
+            --token "$ZENODO_ACCESS_TOKEN" \
+            --project_dir .
+      
+
+
+  docs:
+    name: Docs (Sphinx)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+        with:
+          dependency-group: docs
+
+      - name: Build Sphinx HTML
+        run: uv run --extra docs sphinx-build -b html docs docs/_build/html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/_build/html
+
+  publish-docs:
+    name: Publish Docs
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+  publish-pypi:
+    name: Publish to PyPI
+    if: github.event_name == 'release'
+    needs: [lint, test, test-zenodo-connection, test-gitlab-integration, test-small-analysis]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup uv environment
+        uses: ./.github/actions/setup-uv
+        with:
+          dependency-group: dev
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        run: # need to setup a trusted publisher in Pypi (but avoid passing pypi tokens and password to Github secrets).
+          uv publish
+
+  publish-zenodo:
+  #   name: Publish to Zenodo
+    if: github.event_name == 'release'
+    needs: [lint, test, test-zenodo-connection, test-gitlab-integration, test-small-analysis]
+    runs-on: ubuntu-latest
+    container: 
+      image: registry.gitlab.com/escape-ossr/eossr:v2.2.0
+    steps:
+      - uses: actions/checkout@v7
+      - name: Convert CodeMeta to Zenodo metadata
+        uses: escape2020/codemeta2zenodo@v1.3.0
+        with:
+          overwrite: true
+
+      - name: Change publicationDate in .zenodo.json to current date (fix eossr)
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          sed -i "s/\"publication_date\": \".*\"/\"publication_date\": \"$TODAY\"/" .zenodo.json
+          sed -i "s/\"dateModified\": \".*\"/\"dateModified\": \"$TODAY\"/" codemeta.json
+      - name: Upload and Publish to Zenodo via eossr
+        run: |
+          eossr-upload-repository \
+            --token "${{ secrets.ZENODO_ACCESS_TOKEN }}" \
+            --input-dir . \
+            --archive-name "rsmetacheck-bot-${{ github.event.release.tag_name }}.zip" \
+            --record_id "${{ secrets.ZENODO_DEPOSITION_ID }}"

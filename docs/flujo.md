@@ -5,7 +5,7 @@ El sistema utiliza `SQOO_modular_workflow.json` como único workflow principal d
 - `soca_workflow.json`
 - `rsfc_workflow.json`
 - `resqui_workflow.json`
-- `sw-metadata-bot_workfow.json`
+- `rsmetacheck-bot_workfow.json`
 - `dashverse_workflow.json`
 
 ## Configuración de entrada
@@ -15,7 +15,7 @@ El nodo `Conf` define:
 - `project`: nombre estable usado en directorios y estado incremental.
 - `organizations`: lista de objetos `{"org": "nombre", "type": "org|user"}`.
 - `extra_repositories`: URLs adicionales a las descubiertas en GitHub.
-- `launch_issue`: activa la publicación de issues de sw-metadata-bot.
+- `launch_issue`: activa la publicación de issues de rsmetacheck-bot.
 
 ## 1. Descubrimiento incremental y SOCA
 
@@ -36,28 +36,28 @@ El workflow principal evalúa `has_changes`. Si es `true`, continúa con RSFC; s
 
 Los subworkflows reciben `repos_url` y `repos_removed`:
 
-- RSFC 0.1.8 evalúa los repositorios actualizados, reutiliza metadatos SOCA con `--metadata` cuando existen en `outputs/soca/<project>/metadata/` y, si no los encuentra, ejecuta RSFC con el análisis normal del repositorio. Escribe en `outputs/rsfc/<project>/<owner>_<repo>/`.
+- RSFC 0.2.0 evalúa los repositorios actualizados, reutiliza metadatos SOCA con `--metadata` cuando existen en `outputs/soca/<project>/metadata/` y, si no los encuentra, ejecuta RSFC con el análisis normal del repositorio. Escribe en `outputs/rsfc/<project>/<owner>_<repo>/`.
 - RESQUI evalúa el mismo lote con QualityPipelines y escribe en `outputs/resqui/<project>/<owner>_<repo>/`.
 - Ambos eliminan las salidas persistidas de los repositorios retirados y conservan un resultado anterior si una nueva evaluación falla.
 - Los subworkflows esperan a que todos los repositorios se procesen. Cuando termina el lote, `status.json` queda en `completed` aunque haya repositorios fallidos; esos fallos se conservan en `failed_repos` y no detienen el pipeline.
 
-## 3. sw-metadata-bot
+## 3. rsmetacheck-bot
 
-sw-metadata-bot 0.5.3 recibe el inventario completo, no solo el lote actualizado. Esto permite que cada snapshot mantenga todos los repositorios.
+rsmetacheck-bot 0.6.0 recibe el inventario completo, no solo el lote actualizado. Esto permite que cada snapshot mantenga todos los repositorios.
 
 El bot:
 
 1. Genera `config.json`.
-2. Ejecuta `sw-metadata-bot run-analysis` con una snapshot fechada.
+2. Ejecuta `rsmetacheck-bot run-analysis` con una snapshot fechada.
 3. Localiza automáticamente el `run_report.json` anterior.
 4. Reutiliza los artefactos cuyo commit no ha cambiado.
-5. Ejecuta `sw-metadata-bot publish` solo cuando `launch_issue` es `true`.
+5. Ejecuta `rsmetacheck-bot publish` solo cuando `launch_issue` es `true`.
 
-Las snapshots se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`.
+Las snapshots se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`. La ruta conserva el nombre histórico para que el portal SOCA pueda localizar los informes, aunque el ejecutable y la imagen sean `rsmetacheck-bot`.
 
 ## 4. Portal
 
-Cuando terminan las evaluaciones, `soca_runner.genportal` combina metadatos SOCA, assessments RSFC e informes de sw-metadata-bot. El portal se guarda en `outputs/soca/<project>/portal/` y Nginx lo sirve en:
+Cuando terminan las evaluaciones, `soca_runner.genportal` combina metadatos SOCA, assessments RSFC e informes de rsmetacheck-bot. El portal se guarda en `outputs/soca/<project>/portal/` y Nginx lo sirve en:
 
 ```text
 http://localhost:8030/portals/<project>/

@@ -1,0 +1,19 @@
+__pycache__/
+
+.env
+.vscode/
+
+# package files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# generated files
+outputs/*
+somef_outputs/*
+
+# docs
+docs/_build/
+site/
+assets/example_run

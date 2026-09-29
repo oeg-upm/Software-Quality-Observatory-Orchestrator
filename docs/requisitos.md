@@ -59,8 +59,8 @@ just check-deps
 - SOCA 0.0.4:
 https://github.com/oeg-upm/soca/releases
 
-- RSFC 0.1.7:
-https://github.com/oeg-upm/rsfc/releases/tag/v0.1.7
+- RSFC 0.2.0:
+https://github.com/oeg-upm/rsfc/releases/tag/v0.2.0
 
 - SOMEF 0.11.1:
 https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1
@@ -68,8 +68,8 @@ https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1
 - DASHVERSE 0.3.0: 
 https://github.com/EVERSE-ResearchSoftware/DashVERSE/releases/tag/v0.3.0
 
-- sw-metadata-bot 0.5.3:
-https://github.com/SoftwareUnderstanding/sw-metadata-bot/releases/tag/v0.5.3
+- rsmetacheck-bot 0.6.0:
+https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases
 
-- RsMetaCheck >=0.3.3:
-https://github.com/SoftwareUnderstanding/RsMetaCheck/releases
+- RsMetaCheck >=0.3.6:
+https://github.com/SoftwareUnderstanding/rsmetacheck/releases

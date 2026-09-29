@@ -1,10 +1,9 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18879858.svg)](https://doi.org/10.5281/zenodo.18879858)[![Project Status: Active ](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)[![GitHub release](https://img.shields.io/github/v/release/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG?include_prereleases)](https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG/releases)![RSFC_Coverage](https://img.shields.io/badge/rsfc-coverage_83%25-green)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18879858.svg)](https://doi.org/10.5281/zenodo.18879858)[![Project Status: Active ](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)[![GitHub release](https://img.shields.io/github/v/release/oeg-upm/Software-Quality-Observatory-Orchestrator?include_prereleases)](https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator/releases)![RSFC_Coverage](https://img.shields.io/badge/rsfc-coverage_83%25-green)
 
 
 Documentación detallada en : https://software-quality-observatory-orchestrator-tfg.readthedocs.io/es/latest/
 
-# TFG – Orquestación automatizada de evaluación de software y generación de catálogo
-
+# Software Quality Observatory Orchestrator
 
 
 ## 1. Objetivo del proyecto
@@ -36,7 +35,7 @@ El sistema se basa en la integración y orquestación de herramientas existentes
 | workers           | Procesamiento paralelo de SOCA, RSFC y RESQUI |
 | rate limiters     | Control de peticiones a GitHub para RSFC y RESQUI |
 | Nginx             | Publicación del portal SOCA |
-| sw-metadata-bot   | Evaluación incremental de metadatos e issues opcionales |
+| rsmetacheck-bot   | Evaluación incremental de metadatos e issues opcionales |
 | DashVERSE         | Persistencia y visualización de assessments |
 
 
@@ -72,7 +71,7 @@ Al final, `soca_runner.genportal` combina los metadatos con los resultados de ca
 
 ### RSFC
 
-La imagen `rsfc-heavy` utiliza RSFC 0.1.8 y reutiliza los metadatos SOCA cuando están disponibles. El worker busca el JSON de `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, lo pasa a RSFC con `--metadata` y, si no existe, ejecuta RSFC con el análisis normal del repositorio. El launcher publica los repositorios actualizados en `rsfc_jobs` y elimina las salidas de los repositorios retirados.
+La imagen `rsfc-heavy` utiliza RSFC 0.2.0 y reutiliza los metadatos SOCA cuando están disponibles. El worker busca el JSON de `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, lo pasa a RSFC con `--metadata` y, si no existe, ejecuta RSFC con el análisis normal del repositorio. El launcher publica los repositorios actualizados en `rsfc_jobs` y elimina las salidas de los repositorios retirados.
 
 Cada worker:
 
@@ -92,13 +91,13 @@ El volumen `sqoo_resqui_work` permite que el worker y los contenedores de plugin
 
 RESQUI utiliza el mismo patrón de staging, estado y eliminación de resultados retirados que RSFC. Las configuraciones disponibles se encuentran en `containers/resqui_container/resqui_runner/configurations/` y se seleccionan desde `containers/.env` con `RESQUI_CONF`, usando el nombre del fichero sin la extension `.json`.
 
-### sw-metadata-bot
+### rsmetacheck-bot
 
-Las imágenes `sw-metadata-bot:latest` y `sw-metadata-bot-conf:latest` contienen sw-metadata-bot 0.5.3 y los recursos NLTK/SOMEF necesarios.
+Las imágenes `rsmetacheck-bot:latest` y `rsmetacheck-bot-conf:latest` contienen rsmetacheck-bot 0.6.0 y los recursos NLTK/SOMEF necesarios.
 
-n8n genera un `config.json` con el inventario completo. El bot localiza la snapshot anterior, compara commits y copia los artefactos de repositorios sin cambios. Los informes se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`.
+n8n genera un `config.json` con el inventario completo. El bot localiza la snapshot anterior, compara commits y copia los artefactos de repositorios sin cambios. Los informes se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`. Esta ruta conserva el nombre histórico para que el portal SOCA pueda reutilizar los informes existentes.
 
-`launch_issue` separa el análisis de la publicación: si es `false`, no se llama a `sw-metadata-bot publish`.
+`launch_issue` separa el análisis de la publicación: si es `false`, no se llama a `rsmetacheck-bot publish`.
 
 ### DashVERSE y portal
 
@@ -108,7 +107,7 @@ El portal incorpora:
 
 - metadatos SOCA;
 - informes de RSFC y RESQUI;
-- informes e issues de sw-metadata-bot;
+- informes e issues de rsmetacheck-bot;
 - accesos a los dashboards de dashverse.
 
 Los identificadores de dashboards y el dominio de Superset se configuran con `DASHBOARD_ORG_EMBED_ID`, `DASHBOARD_REPO_EMBED_ID` y `SUPERSET_PUBLIC_DOMAIN`.
@@ -117,7 +116,7 @@ Los identificadores de dashboards y el dominio de Superset se configuran con `DA
 
 ## 4. Workflow modular de n8n
 
-`SQOO_modular_workflow.json` es el único workflow principal. Orquesta, en este orden, `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `sw-metadata-bot_workfow.json` y `dashverse_workflow.json`.
+`SQOO_modular_workflow.json` es el único workflow principal. Orquesta, en este orden, `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json` y `dashverse_workflow.json`.
 
 El nodo `Conf` define:
 
@@ -132,7 +131,7 @@ El nodo `Conf` define:
 2. `If has changes` continúa el pipeline cuando hay repositorios actualizados o eliminados; si no hay cambios, consolida directamente el estado.
 3. Solo los repositorios nuevos o modificados pasan por los workers de SOCA, RSFC y RESQUI. Los retirados se eliminan de sus salidas persistidas.
 4. RSFC y RESQUI guardan resultados por `owner_repo` y notifican el estado del lote mediante `status.json`; los fallos por repositorio quedan registrados en `failed_repos` sin detener el pipeline.
-5. sw-metadata-bot recibe el inventario completo, reutiliza la snapshot anterior para repositorios sin cambios y publica issues solo si `launch_issue` está activado.
+5. rsmetacheck-bot recibe el inventario completo, reutiliza la snapshot anterior para repositorios sin cambios y publica issues solo si `launch_issue` está activado.
 6. SOCA genera el portal enriquecido, que Nginx publica en `http://localhost:8030/portals/<project>/`.
 7. `If repo updated` llama a DashVERSE solo si existen assessments nuevos; una ejecución con solo eliminaciones pasa directamente a la consolidación.
 8. El estado pendiente se consolida como `repository-state.json` únicamente cuando finaliza el pipeline.
@@ -208,8 +207,8 @@ just check-deps
 - SOCA 0.0.4:
 https://github.com/oeg-upm/soca/releases
 
-- RSFC 0.1.8:
-https://github.com/oeg-upm/rsfc/releases/tag/v0.1.8
+- RSFC 0.2.0:
+https://github.com/oeg-upm/rsfc/releases/tag/v0.2.0
 
 - SOMEF 0.11.1:
 https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1
@@ -217,11 +216,11 @@ https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1
 - DASHVERSE 0.3.0: 
 https://github.com/EVERSE-ResearchSoftware/DashVERSE/releases/tag/v0.3.0
 
-- sw-metadata-bot 0.5.3:
-https://github.com/SoftwareUnderstanding/sw-metadata-bot/releases/tag/v0.5.3
+- rsmetacheck-bot 0.6.0:
+https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases
 
-- RsMetaCheck >=0.3.3:
-https://github.com/SoftwareUnderstanding/RsMetaCheck/releases
+- RsMetaCheck >=0.3.6:
+https://github.com/SoftwareUnderstanding/rsmetacheck/releases
       
       
 ---
@@ -268,7 +267,7 @@ Las imágenes pueden construirse con `scripts/build-docker-images.sh` en WSL/Lin
 0. Importar los submodulos del repositorio:
    - SQOO usa `containers/resqui_container/QualityPipelines-2.0` como submodulo para incluir el codigo fuente de RESQUI/QualityPipelines.
    - Si se clona el repositorio desde cero, usar:
-      - Mandato: `git clone --recurse-submodules https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG.git`
+      - Mandato: `git clone --recurse-submodules https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git`
    - Si el repositorio ya estaba clonado o se acaba de hacer `git pull`, ejecutar desde la raiz de SQOO:
       - Mandato: `git submodule update --init --recursive`
    - Para comprobar que el submodulo esta descargado:
@@ -281,15 +280,15 @@ Las imágenes pueden construirse con `scripts/build-docker-images.sh` en WSL/Lin
    - `rsfc-heavy`:
       - Directorio desde el que crearla: `/containers/rsfc_container` 
       - Mandato: `docker build -t rsfc-heavy .`
-   - `sw-metadata-bot`:
-      - Directorio desde el que crearla: `/integrations/sw-metadata-bot-0.5.3`
-      - Mandato: `docker build -t sw-metadata-bot .`
-   - `sw-metadata-bot-conf`:
-      - Directorio desde el que crearla: `/containers/sw-metadata-bot_container` 
-      - Mandato: `docker build -t sw-metadata-bot-conf .`
    - `resqui-heavy`:
       - Directorio desde el que crearla: `/containers/resqui_container`
       - Mandato: `docker build -t resqui-heavy .`
+   - `rsmetacheck-bot`:
+      - Directorio desde el que crearla: `/integrations/rsmetacheck-bot-0.6.0`
+      - Mandato: `docker build -t rsmetacheck-bot .`
+   - `rsmetacheck-bot-conf`:
+      - Directorio desde el que crearla: `/containers/rsmetacheck-bot_container`
+      - Mandato: `docker build -t rsmetacheck-bot-conf .`
 
    Estas son las imágenes del orquestador SQOO. Las imágenes propias de DashVERSE (`dashverse/backend` y `dashverse/frontend`) no se construyen con estos scripts: las construye `just deploy` desde `integrations/DashVERSE` usando `minikube image build`.
 
@@ -302,16 +301,16 @@ Las imágenes pueden construirse con `scripts/build-docker-images.sh` en WSL/Lin
     1. Crear cuenta de usuario en n8n
     2. Importar los workflows desde `/containers/n8n_container/workflows/`
 5. Importar y usar el workflow modular:
-   - Importar `SQOO_modular_workflow.json` y los subworkflows `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `sw-metadata-bot_workfow.json` y `dashverse_workflow.json`.
+   - Importar `SQOO_modular_workflow.json` y los subworkflows `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json` y `dashverse_workflow.json`.
    - Despues revisar los nodos `Call '<subworkflow>'` del workflow principal para que apunten a los subworkflows importados en la instancia de n8n.
 6. Editar el nodo inicial de configuración con la organización/usuario deseado:
    - `project`: nombre estable para las salidas y el estado incremental.
    - `organizations`: lista de objetos con `org` y `type` (`org` o `user`).
    - `extra_repositories`: lista opcional de URLs adicionales.
-   - `launch_issue`: `true` para publicar issues con `sw-metadata-bot publish`, `false` para ejecutar solo el análisis de metadatos.
+   - `launch_issue`: `true` para publicar issues con `rsmetacheck-bot publish`, `false` para ejecutar solo el análisis de metadatos.
 7. Ejecutar manualmente
 
-Tras ello se obtienen en `outputs` los metadatos SOCA, assessments RSFC y RESQUI, snapshots de sw-metadata-bot y el portal final. Nginx sirve el portal en `http://localhost:8030/portals/<project>/`.
+Tras ello se obtienen en `outputs` los metadatos SOCA, assessments RSFC y RESQUI, snapshots de rsmetacheck-bot y el portal final. Nginx sirve el portal en `http://localhost:8030/portals/<project>/`.
 
 
 

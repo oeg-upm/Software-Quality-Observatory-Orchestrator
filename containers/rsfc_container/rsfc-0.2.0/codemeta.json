@@ -1,0 +1,62 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "type": "SoftwareSourceCode",
+    "applicationCategory": "Computer Science",
+    "author": [
+        {
+            "id": "https://orcid.org/0000-0003-0454-7145",
+            "type": "Person",
+            "email": "daniel.garijo@upm.es",
+            "familyName": "Garijo",
+            "givenName": "Daniel"
+        },
+        {
+            "id": "_:author_2",
+            "type": "Person",
+            "email": "andres.montero.martin@upm.es",
+            "familyName": "Montero",
+            "givenName": "Andrés"
+        },
+        {
+            "id": "_:author_3",
+            "type": "Person",
+            "email": "juanjesus.mendoza@upm.es",
+            "familyName": "Mendoza",
+            "givenName": "Juanje"
+        },
+        {
+            "id": "https://orcid.org/0000-0003-4112-6825",
+            "type": "Person",
+            "email": "egonzalez@fi.upm.es",
+            "familyName": "Gonzalez",
+            "givenName": "Esteban"
+        }
+    ],
+    "contributor": [
+        {
+            "id": "https://orcid.org/0000-0002-8742-8952",
+            "@type": "Person",
+            "givenName": "Violaine",
+            "familyName": "Louvet",
+            "email": "violaine.louvet@univ-grenoble-alpes.fr"
+        }
+    ],
+    "codeRepository": "https://github.com/oeg-upm/rsfc",
+    "dateCreated": "2025-07-01",
+    "description": "Package that performs a series of checks based on a list of research software fairness indicators",
+    "isPartOf": "https://everse.software/",
+    "identifier": "https://doi.org/10.5281/zenodo.16531481",
+    "keywords": [
+        "quality",
+        "indicators",
+        "fair",
+        "fairness"
+    ],
+    "license": "https://spdx.org/licenses/MIT",
+    "name": "RSFC",
+    "operatingSystem": "Linux",
+    "programmingLanguage": "Python",
+    "relatedLink": "https://github.com/EVERSE-ResearchSoftware/indicators",
+    "version": "0.2.0",
+    "developmentStatus": "wip"
+}

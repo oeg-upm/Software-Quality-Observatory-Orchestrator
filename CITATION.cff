@@ -19,7 +19,7 @@ abstract: >-
   A modular and containerized orchestrator for assessing research software
   quality. It uses n8n and RabbitMQ to coordinate incremental metadata
   extraction with SOCA and SOMEF, FAIR quality assessments with RSFC and
-  RESQUI, metadata checks with sw-metadata-bot and RsMetaCheck, publication
+  RESQUI, metadata checks with rsmetacheck-bot and RsMetaCheck, publication
   to DashVERSE, and generation of a software catalogue portal.
 keywords:
   - research software
@@ -38,27 +38,54 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.18879858
     description: Concept DOI for all archived versions of the software.
-repository-code: https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG
-url: https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG
+repository-code: https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator
+url: https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator
+
 references:
+  # SOCA - metadata extraction
   - type: software
     title: SOCA
+    version: "0.0.4"
     repository-code: https://github.com/oeg-upm/soca
+    url: https://github.com/oeg-upm/soca
+
+  # SOMEF - metadata extraction
   - type: software
     title: SOMEF
+    version: "0.11.1"
     repository-code: https://github.com/KnowledgeCaptureAndDiscovery/somef
+    url: https://github.com/KnowledgeCaptureAndDiscovery/somef
+
+  # RSFC - FAIR assessment
   - type: software
     title: RSFC
+    version: "0.2.0"
     repository-code: https://github.com/oeg-upm/rsfc
+    url: https://github.com/oeg-upm/rsfc
+
+  # RESQUI - configurable quality pipelines
   - type: software
     title: RESQUI (EVERSE Software Quality Pipelines)
     repository-code: https://github.com/EVERSE-ResearchSoftware/QualityPipelines
+    url: https://github.com/EVERSE-ResearchSoftware/QualityPipelines
+
+  # rsmetacheck-bot - metadata quality bot
   - type: software
-    title: DashVERSE
-    repository-code: https://github.com/EVERSE-ResearchSoftware/DashVERSE
-  - type: software
-    title: sw-metadata-bot
-    repository-code: https://github.com/SoftwareUnderstanding/sw-metadata-bot
+    title: rsmetacheck-bot
+    version: "0.6.0"
+    repository-code: https://github.com/SoftwareUnderstanding/rsmetacheck-bot
+    url: https://github.com/SoftwareUnderstanding/rsmetacheck-bot
+
+  # RsMetaCheck - metadata checks engine
   - type: software
     title: RsMetaCheck
-    repository-code: https://github.com/SoftwareUnderstanding/RsMetaCheck
+    version: ">=0.3.6"
+    repository-code: https://github.com/SoftwareUnderstanding/rsmetacheck
+    url: https://github.com/SoftwareUnderstanding/rsmetacheck
+
+  # DashVERSE - dashboards and assessment publication
+  - type: software
+    title: DashVERSE
+    version: "0.3.0"
+    repository-code: https://github.com/EVERSE-ResearchSoftware/DashVERSE
+    url: https://github.com/EVERSE-ResearchSoftware/DashVERSE

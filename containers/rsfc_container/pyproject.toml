@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [tool.poetry.dependencies]
-rsfc = { path = "rsfc-0.1.9", develop = true }
+rsfc = { path = "rsfc-0.2.0", develop = true }
 
 
 

@@ -5,8 +5,8 @@
 ### 1. Clonar el repositorio
 
 ```bash
-git clone --recurse-submodules https://github.com/SergioZSZ/Software-Quality-Observatory-Orchestrator-TFG.git
-cd Software-Quality-Observatory-Orchestrator-TFG
+git clone --recurse-submodules https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git
+cd Software-Quality-Observatory-Orchestrator
 ```
 
 En una copia existente:
@@ -41,11 +41,11 @@ Se pueden usar `scripts/build-docker-images.sh` en WSL/Linux o `scripts/build-do
 docker build -t soca-heavy:latest containers/soca_container
 docker build -t rsfc-heavy:latest containers/rsfc_container
 docker build -t resqui-heavy:latest containers/resqui_container
-docker build -t sw-metadata-bot:latest integrations/sw-metadata-bot-0.5.3
-docker build -t sw-metadata-bot-conf:latest containers/sw-metadata-bot_container
+docker build -t rsmetacheck-bot:latest integrations/rsmetacheck-bot-0.6.0
+docker build -t rsmetacheck-bot-conf:latest containers/rsmetacheck-bot_container
 ```
 
-La imagen `sw-metadata-bot-conf` debe construirse después de `sw-metadata-bot`, ya que hereda de ella.
+La imagen `rsmetacheck-bot-conf` debe construirse después de `rsmetacheck-bot`, ya que hereda de ella.
 
 Estas son las imágenes del orquestador SQOO. Las imágenes propias de DashVERSE (`dashverse/backend` y `dashverse/frontend`) no se construyen con estos scripts: las construye `just deploy` desde `integrations/DashVERSE` usando `minikube image build`.
 
@@ -73,7 +73,7 @@ Acceder a `http://localhost:5678` e importar:
 - `soca_workflow.json`
 - `rsfc_workflow.json`
 - `resqui_workflow.json`
-- `sw-metadata-bot_workfow.json`
+- `rsmetacheck-bot_workfow.json`
 - `dashverse_workflow.json`
 
 Revisar los nodos `Call '<subworkflow>'` para que apunten a los workflows importados.

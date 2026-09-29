@@ -1,43 +1,18 @@
 # General
-- Ahora los failed_repos de anteriores iteraciones del workflow se intentan procesan en la siguiente para soca, rsfc y resqui
-- Aumentados los MB de descarga de somef a 2000MB para soca y sw-metadata-bot
-- Actualizados scripts de creación de imágenes docker y de instalación de herramientas para DashVERSE
-- Añadida nueva variable entorno `RESQUI_CONF` para seleccionar la configuración querida para los worker_resqui
-- Cambio de configuración para generar el portal linkeddata usando un YAML propio con URLs de repositorios, ejemplo:
-```json
-{
-  "project": "sergio-soca-incremental",
-  "organizations": [
-    {
-      "org": "SergioZSZ",
-      "type": "user"
-    }
-  ],
-  "extra_repositories": ["https://github.com/oeg-upm/soca"],
-  "launch_issue": false,
-  "linkeddata_tools": "/app/outputs/linkeddata_tools.yml"
-}
-```
-- `linkeddata_tools` apunta al YAML propio que sustituye las herramientas del YAML base de LinkedData.
-- Las tools nuevas se declaran solo como URLs de GitHub en ese YAML; los campos de la card se rellenan desde metadatos SOCA/SOMEF.
-- Si no existen metadatos previos de SOCA para una URL, se intentan extraer como fallback.
+- Actualizada la documentación en español e inglés para RSFC 0.2.0 y rsmetacheck-bot 0.6.0.
 
-- Implementado sqoo_assessment, fusionando los assessments de rsfc y resqui para subir a DashVERSE un unico assessment por repo. De RSFC debido a que hay indicadores con más de un check, se decidió usar esta configuración relación indicador/checks: 
-[conf](containers/dashverse_runner/rsfc_indicators.json)
-
-# SW-METADATA-BOT
-
+# RSMETACHECK-BOT
+- Actualizado a su versión 0.6.0
+- Renombrada la integración desde sw-metadata-bot a rsmetacheck-bot y documentadas las nuevas CLI `run-analysis`, `publish`, `simulate-publish` y `convert-legacy`.
 
 # SOCA
-- Añadida generación del portal linkeddata a partir del YAML base + YAML propio de URLs de herramientas (`linkeddata_tools`)
-- Mejorada la de detección de tipo de repositorio
-- Mejorada la obtención der descripciones a partir de metadatos de los repositorios
+
 # RSFC
-- Actualizado a versión RSFC 0.1.8
+- Actualizado a su versión 0.2.0
+- Documentada la reutilización de metadatos SOCA mediante `rsfc --metadata`.
 
 # RESQUI
-- Arreglados bugs de conexión timeout worker_resqui-rabbitmq
-- Mejorada la tolerancia a git clone en los worker_resqui
+
 
 # DashVERSE
 

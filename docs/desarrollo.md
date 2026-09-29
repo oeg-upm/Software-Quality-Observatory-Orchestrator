@@ -16,7 +16,7 @@ Al final, `soca_runner.genportal` combina los metadatos con los resultados de ca
 
 ## RSFC
 
-La imagen `rsfc-heavy` utiliza RSFC 0.1.8 y reutiliza los metadatos SOCA cuando están disponibles. El worker busca el JSON de `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, lo pasa a RSFC con `--metadata` y, si no existe, ejecuta RSFC con el análisis normal del repositorio. El launcher publica los repositorios actualizados en `rsfc_jobs` y elimina las salidas de los repositorios retirados.
+La imagen `rsfc-heavy` utiliza RSFC 0.2.0 y reutiliza los metadatos SOCA cuando están disponibles. El worker busca el JSON de `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, lo pasa a RSFC con `--metadata` y, si no existe, ejecuta RSFC con el análisis normal del repositorio. El launcher publica los repositorios actualizados en `rsfc_jobs` y elimina las salidas de los repositorios retirados.
 
 Cada worker:
 
@@ -36,13 +36,13 @@ El volumen `sqoo_resqui_work` permite que el worker y los contenedores de plugin
 
 RESQUI utiliza el mismo patrón de staging, estado y eliminación de resultados retirados que RSFC. Las configuraciones disponibles se encuentran en `containers/resqui_container/resqui_runner/configurations/` y se seleccionan desde `containers/.env` con `RESQUI_CONF`, usando el nombre del fichero sin la extension `.json` (por ejemplo, `RESQUI_CONF=complete_no_rsfc_superlinter`).
 
-## sw-metadata-bot
+## rsmetacheck-bot
 
-Las imágenes `sw-metadata-bot:latest` y `sw-metadata-bot-conf:latest` contienen sw-metadata-bot 0.5.3 y los recursos NLTK/SOMEF necesarios.
+Las imágenes `rsmetacheck-bot:latest` y `rsmetacheck-bot-conf:latest` contienen rsmetacheck-bot 0.6.0 y los recursos NLTK/SOMEF necesarios.
 
-n8n genera un `config.json` con el inventario completo. El bot localiza la snapshot anterior, compara commits y copia los artefactos de repositorios sin cambios. Los informes se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`.
+n8n genera un `config.json` con el inventario completo. El bot localiza la snapshot anterior, compara commits y copia los artefactos de repositorios sin cambios. Los informes se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`. Esta ruta conserva el nombre histórico para que el portal SOCA pueda reutilizar los informes existentes.
 
-`launch_issue` separa el análisis de la publicación: si es `false`, no se llama a `sw-metadata-bot publish`.
+`launch_issue` separa el análisis de la publicación: si es `false`, no se llama a `rsmetacheck-bot publish`.
 
 ## DashVERSE y portal
 
@@ -52,7 +52,7 @@ El portal incorpora:
 
 - metadatos SOCA;
 - informes de RSFC y RESQUI;
-- informes e issues de sw-metadata-bot;
+- informes e issues de rsmetacheck-bot;
 - accesos a los dashboards de dashverse.
 
 Los identificadores de dashboards y el dominio de Superset se configuran con `DASHBOARD_ORG_EMBED_ID`, `DASHBOARD_REPO_EMBED_ID` y `SUPERSET_PUBLIC_DOMAIN`.

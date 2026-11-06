@@ -91,7 +91,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        880,
+        864,
         -48
       ],
       "id": "3509d2c2-2342-4f73-8db9-8226e902e835",
@@ -178,7 +178,7 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1312,
+        1456,
         -48
       ],
       "id": "d316d98b-2e3f-48ca-8da4-1d85e83686f6",
@@ -241,7 +241,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        2112,
+        2256,
         -64
       ],
       "id": "a7c98b9c-4d33-4e0b-b82c-af18126fe778",
@@ -254,7 +254,7 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        2336,
+        2480,
         208
       ],
       "id": "24af92b6-de93-45bf-81bf-77a15d82da3e",
@@ -324,7 +324,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1808,
+        1952,
         -48
       ],
       "id": "58f20c7c-71da-447a-a223-af67dc6a9e54",
@@ -445,7 +445,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n    \"repos_url\":  [\n                      \"https://github.com/oeg-upm/vocab.linkeddata.es\",\n                      \"https://github.com/oeg-upm/morph-gft\",\n                      \"https://github.com/oeg-upm/map4rdf\",\n                      \"https://github.com/oeg-upm/morph-rdb\",\n                      \"https://github.com/oeg-upm/morph-streams\",\n                      \"https://github.com/oeg-upm/morph-streams-web\",\n                      \"https://github.com/oeg-upm/ssn-resource-center\",\n                      \"https://github.com/oeg-upm/SMART-Protocols\",\n                      \"https://github.com/oeg-upm/CJCyL\",\n                      \"https://github.com/oeg-upm/MIRROR\",\n                      \"https://github.com/oeg-upm/oeg-upm.github.io\",\n                      \"https://github.com/oeg-upm/LLD-Search\",\n                      \"https://github.com/oeg-upm/OTALEX-C\",\n                      \"https://github.com/oeg-upm/OpenRefineExtension_Transformation\",\n                      \"https://github.com/oeg-upm/geo.linkeddata.es-TripleGeoKettle\",\n                      \"https://github.com/oeg-upm/licensius\",\n                      \"https://github.com/oeg-upm/biotea\",\n                      \"https://github.com/oeg-upm/btn100\",\n                      \"https://github.com/oeg-upm/SendEmailWebApp\",\n                      \"https://github.com/oeg-upm/Jarsomatic\",\n                      \"https://github.com/oeg-upm/vocabUpdates\",\n                      \"https://github.com/oeg-upm/vocabTest\",\n                      \"https://github.com/oeg-upm/vicinity-ontologies\",\n                      \"https://github.com/oeg-upm/website\",\n                      \"https://github.com/oeg-upm/website-geo\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine\",\n                      \"https://github.com/oeg-upm/201612-clarityhackathon-upm\",\n                      \"https://github.com/oeg-upm/mappingpedia-contents\",\n                      \"https://github.com/oeg-upm/agora-py\",\n                      \"https://github.com/oeg-upm/agora-wot\",\n                      \"https://github.com/oeg-upm/docker-geokettle-x3geo\",\n                      \"https://github.com/oeg-upm/mappingpedia-contents-test\",\n                      \"https://github.com/oeg-upm/mappingpedia-userinterface\",\n                      \"https://github.com/oeg-upm/outlinejs\",\n                      \"https://github.com/oeg-upm/ontology-BTN100\",\n                      \"https://github.com/oeg-upm/hydrontology\",\n                      \"https://github.com/oeg-upm/agora-gw\",\n                      \"https://github.com/oeg-upm/agora-docker\",\n                      \"https://github.com/oeg-upm/gtfs-bench\",\n                      \"https://github.com/oeg-upm/city4age\",\n                      \"https://github.com/oeg-upm/web-oeg\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-ws\",\n                      \"https://github.com/oeg-upm/rmlc-statistic\",\n                      \"https://github.com/oeg-upm/ainn-userm\",\n                      \"https://github.com/oeg-upm/mobileage-platform-example\",\n                      \"https://github.com/oeg-upm/webODE\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-datasets\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-datasets-ws\",\n                      \"https://github.com/oeg-upm/fuzzy-c-means\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-mappings\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-mappings-ws\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-commons\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-commons-ws\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-executions\",\n                      \"https://github.com/oeg-upm/mappingpedia-engine-executions-ws\",\n                      \"https://github.com/oeg-upm/pcake\",\n                      \"https://github.com/oeg-upm/delta-ontology\",\n                      \"https://github.com/oeg-upm/ainn-request\",\n                      \"https://github.com/oeg-upm/ainn-website\",\n                      \"https://github.com/oeg-upm/PPool\",\n                      \"https://github.com/oeg-upm/easytv-onto\",\n                      \"https://github.com/oeg-upm/confs-info\",\n                      \"https://github.com/oeg-upm/Morph-OME\",\n                      \"https://github.com/oeg-upm/easytv-annotator\",\n                      \"https://github.com/oeg-upm/easytv-annotator-webservice\",\n                      \"https://github.com/oeg-upm/terminology-extractor\",\n                      \"https://github.com/oeg-upm/IVHackathonOpenDataCaceres-UPM\",\n                      \"https://github.com/oeg-upm/fcm-cpp\",\n                      \"https://github.com/oeg-upm/terminology-extractor-incibe\",\n                      \"https://github.com/oeg-upm/ontologia-ciberseguridad\",\n                      \"https://github.com/oeg-upm/ttla\",\n                      \"https://github.com/oeg-upm/tada-entity\",\n                      \"https://github.com/oeg-upm/helio-framework\",\n                      \"https://github.com/oeg-upm/helio-plugins\",\n                      \"https://github.com/oeg-upm/r2rml-editor\",\n                      \"https://github.com/oeg-upm/vkg-tutorial-eswc2019\",\n                      \"https://github.com/oeg-upm/morph-website\",\n                      \"https://github.com/oeg-upm/tada-gam\",\n                      \"https://github.com/oeg-upm/tada-type-graph\",\n                      \"https://github.com/oeg-upm/tada-map-score\",\n                      \"https://github.com/oeg-upm/tada-reduce-combine\",\n                      \"https://github.com/oeg-upm/TPool\",\n                      \"https://github.com/oeg-upm/transmodel-ontology\",\n                      \"https://github.com/oeg-upm/mapeathor\",\n                      \"https://github.com/oeg-upm/easytv-resources\",\n                      \"https://github.com/oeg-upm/kgc-eval\",\n                      \"https://github.com/oeg-upm/ssspotter\",\n                      \"https://github.com/oeg-upm/subject_column_election\",\n                      \"https://github.com/oeg-upm/transmodel-cq\",\n                      \"https://github.com/oeg-upm/eWoT\",\n                      \"https://github.com/oeg-upm/pycpulimit\",\n                      \"https://github.com/oeg-upm/S4WATR\",\n                      \"https://github.com/oeg-upm/astrea\",\n                      \"https://github.com/oeg-upm/helio\",\n                      \"https://github.com/oeg-upm/epw2csv\",\n                      \"https://github.com/oeg-upm/epw2rdf\",\n                      \"https://github.com/oeg-upm/epw2rdf-contents\",\n                      \"https://github.com/oeg-upm/Themis\",\n                      \"https://github.com/oeg-upm/bimerr-core\",\n                      \"https://github.com/oeg-upm/morph-csv\",\n                      \"https://github.com/oeg-upm/declarative-functions\",\n                      \"https://github.com/oeg-upm/astrea-web\",\n                      \"https://github.com/oeg-upm/weather1\",\n                      \"https://github.com/oeg-upm/pausa-web\",\n                      \"https://github.com/oeg-upm/snap-docs\",\n                      \"https://github.com/oeg-upm/bimerr-weather\",\n                      \"https://github.com/oeg-upm/bimerr-occupant-behavior\",\n                      \"https://github.com/oeg-upm/bimerr-senML\",\n                      \"https://github.com/oeg-upm/bimerr-kpi\",\n                      \"https://github.com/oeg-upm/DeltaCimApp\",\n                      \"https://github.com/oeg-upm/morph-skyline\",\n                      \"https://github.com/oeg-upm/LabSensingArduino\",\n                      \"https://github.com/oeg-upm/geo-agreement\",\n                      \"https://github.com/oeg-upm/kgc-tutorial-iswc2020\",\n                      \"https://github.com/oeg-upm/tada-hdt-entity\",\n                      \"https://github.com/oeg-upm/BO2DM\",\n                      \"https://github.com/oeg-upm/tada-hdt-entity-experiment\",\n                      \"https://github.com/oeg-upm/bimerr-building\",\n                      \"https://github.com/oeg-upm/covid19\",\n                      \"https://github.com/oeg-upm/bimerr-annotation-objects\",\n                      \"https://github.com/oeg-upm/drugs4covid19-vocab\",\n                      \"https://github.com/oeg-upm/drugs4covid19-kg\",\n                      \"https://github.com/oeg-upm/drugs4covid19web\",\n                      \"https://github.com/oeg-upm/drugs4covid19-cs\",\n                      \"https://github.com/oeg-upm/Chowlk\",\n                      \"https://github.com/oeg-upm/pytada-hdt-entity\",\n                      \"https://github.com/oeg-upm/BIMERR-KGG\",\n                      \"https://github.com/oeg-upm/tada-api\",\n                      \"https://github.com/oeg-upm/drugs4covid19-nlp\",\n                      \"https://github.com/oeg-upm/bimerr-health-security\",\n                      \"https://github.com/oeg-upm/bimerr-renovation-measures\",\n                      \"https://github.com/oeg-upm/OWL-To-OAS-Specification\",\n                      \"https://github.com/oeg-upm/tada-hdt-numeric\",\n                      \"https://github.com/oeg-upm/drugs4covid19\",\n                      \"https://github.com/oeg-upm/bimerr-material-properties\",\n                      \"https://github.com/oeg-upm/websiteFooterLogos\",\n                      \"https://github.com/oeg-upm/bimerr-website\",\n                      \"https://github.com/oeg-upm/bimerr-metadata\",\n                      \"https://github.com/oeg-upm/tada-qq\",\n                      \"https://github.com/oeg-upm/easysparql\",\n                      \"https://github.com/oeg-upm/DBpedia-downloader\",\n                      \"https://github.com/oeg-upm/helio-materialiser\",\n                      \"https://github.com/oeg-upm/delta-cims-monitor\",\n                      \"https://github.com/oeg-upm/AI4EU_raidologist\",\n                      \"https://github.com/oeg-upm/helio-publisher\",\n                      \"https://github.com/oeg-upm/IEBrain\",\n                      \"https://github.com/oeg-upm/LOT-resources\",\n                      \"https://github.com/oeg-upm/easytv-semantic-annotator\",\n                      \"https://github.com/oeg-upm/mgds-ids\",\n                      \"https://github.com/oeg-upm/Conceptual-Mapping\",\n                      \"https://github.com/oeg-upm/bimerr-information-objects\",\n                      \"https://github.com/oeg-upm/sprint\",\n                      \"https://github.com/oeg-upm/wot-jtd\",\n                      \"https://github.com/oeg-upm/devops-infra\",\n                      \"https://github.com/oeg-upm/bimerr-renovation-process\",\n                      \"https://github.com/oeg-upm/Instituto-Estudios-Fiscales-ontologias\",\n                      \"https://github.com/oeg-upm/oatapi\",\n                      \"https://github.com/oeg-upm/kehio\",\n                      \"https://github.com/oeg-upm/ner4soft\",\n                      \"https://github.com/oeg-upm/lynx-py\",\n                      \"https://github.com/oeg-upm/cogito-website\",\n                      \"https://github.com/oeg-upm/Solidity-ontology\",\n                      \"https://github.com/oeg-upm/AstreaRun\",\n                      \"https://github.com/oeg-upm/bimerr-obxml\",\n                      \"https://github.com/oeg-upm/bimerr-materials\",\n                      \"https://github.com/oeg-upm/bimerr-epw\",\n                      \"https://github.com/oeg-upm/bimerr_materials_table\",\n                      \"https://github.com/oeg-upm/fair_ontologies\",\n                      \"https://github.com/oeg-upm/DIoT\",\n                      \"https://github.com/oeg-upm/wot-hive\",\n                      \"https://github.com/oeg-upm/cogito-facility-ontology\",\n                      \"https://github.com/oeg-upm/cogito-construction-process-ontology\",\n                      \"https://github.com/oeg-upm/cogito-resources-ontology\",\n                      \"https://github.com/oeg-upm/auroral-website\",\n                      \"https://github.com/oeg-upm/auroral-privacy-ontology\",\n                      \"https://github.com/oeg-upm/auroral-core-ontology\",\n                      \"https://github.com/oeg-upm/GEnI\",\n                      \"https://github.com/oeg-upm/doccano_formatter\",\n                      \"https://github.com/oeg-upm/soca\",\n                      \"https://github.com/oeg-upm/ya2ro\",\n                      \"https://github.com/oeg-upm/JSONPath-to-SPARQL\",\n                      \"https://github.com/oeg-upm/cogito-kgg\",\n                      \"https://github.com/oeg-upm/virtuoso-triple-store\",\n                      \"https://github.com/oeg-upm/docker-freeling4\",\n                      \"https://github.com/oeg-upm/Massive-ROs-Creator\",\n                      \"https://github.com/oeg-upm/cogito-relational_ddbb\",\n                      \"https://github.com/oeg-upm/ipfs-service\",\n                      \"https://github.com/oeg-upm/t5-spanish-news-summarization\",\n                      \"https://github.com/oeg-upm/beto-covid-sentiment-analysis\",\n                      \"https://github.com/oeg-upm/FAIR-Research-Object\",\n                      \"https://github.com/oeg-upm/Ethereum-Smart-Contract-Downloader\",\n                      \"https://github.com/oeg-upm/cogito-quality-ontology\",\n                      \"https://github.com/oeg-upm/cogito-sparql\",\n                      \"https://github.com/oeg-upm/cogito-kgg-module\",\n                      \"https://github.com/oeg-upm/things-manager-platform\",\n                      \"https://github.com/oeg-upm/termlex\",\n                      \"https://github.com/oeg-upm/loom-ld\",\n                      \"https://github.com/oeg-upm/mobility\",\n                      \"https://github.com/oeg-upm/auroral-tourism-ontology\",\n                      \"https://github.com/oeg-upm/ontology-directory\",\n                      \"https://github.com/oeg-upm/lubm4obda\",\n                      \"https://github.com/oeg-upm/auroral-adapters-ontology\",\n                      \"https://github.com/oeg-upm/github-action-sparql\",\n                      \"https://github.com/oeg-upm/github-action-morph-kgc\",\n                      \"https://github.com/oeg-upm/cogito_thing_manager_module\",\n                      \"https://github.com/oeg-upm/cogito_wrapper_module\",\n                      \"https://github.com/oeg-upm/github-action-pretty-yarrrml2rml\",\n                      \"https://github.com/oeg-upm/software_catalog\",\n                      \"https://github.com/oeg-upm/PoliticEsChallenge\",\n                      \"https://github.com/oeg-upm/auroral-website-def\",\n                      \"https://github.com/oeg-upm/ROCrate_enrichment_service\",\n                      \"https://github.com/oeg-upm/cpv-classifier\",\n                      \"https://github.com/oeg-upm/spread-sheet-space-apis\",\n                      \"https://github.com/oeg-upm/TPDL2022_FAIROs\",\n                      \"https://github.com/oeg-upm/hcommonk-anonymizer\",\n                      \"https://github.com/oeg-upm/Devos\",\n                      \"https://github.com/oeg-upm/WAugNER\",\n                      \"https://github.com/oeg-upm/rdf-star-generation\",\n                      \"https://github.com/oeg-upm/Sancus\",\n                      \"https://github.com/oeg-upm/cogito-safety-ontology\",\n                      \"https://github.com/oeg-upm/coppola\",\n                      \"https://github.com/oeg-upm/Solidity-ABI-ontology\",\n                      \"https://github.com/oeg-upm/widaug\",\n                      \"https://github.com/oeg-upm/auroral-biomass-ontology\",\n                      \"https://github.com/oeg-upm/dataeuropa-analysis\",\n                      \"https://github.com/oeg-upm/auroral-marketplace-ontology\",\n                      \"https://github.com/oeg-upm/hola-si-protocol\",\n                      \"https://github.com/oeg-upm/FAIR-Research-Object-API\",\n                      \"https://github.com/oeg-upm/cogito-iot-ontology\",\n                      \"https://github.com/oeg-upm/cogito-platform-ontology\",\n                      \"https://github.com/oeg-upm/auroral-shipmentBiomass-ontology\",\n                      \"https://github.com/oeg-upm/odrl-lib\",\n                      \"https://github.com/oeg-upm/Cloud_Helio_Adapter\",\n                      \"https://github.com/oeg-upm/software_mentions_benchmark\",\n                      \"https://github.com/oeg-upm/cogito_data_repository\",\n                      \"https://github.com/oeg-upm/auroral-energy-ontology\",\n                      \"https://github.com/oeg-upm/kg-scenarios-eval\",\n                      \"https://github.com/oeg-upm/TINTO\",\n                      \"https://github.com/oeg-upm/AttentionRankLib\",\n                      \"https://github.com/oeg-upm/auroral-Car-booking-ontology\",\n                      \"https://github.com/oeg-upm/transforming-term-extraction-lib\",\n                      \"https://github.com/oeg-upm/yarrrml-validation\",\n                      \"https://github.com/oeg-upm/BRATtoBIO\",\n                      \"https://github.com/oeg-upm/context-builder\",\n                      \"https://github.com/oeg-upm/LuckyLook\",\n                      \"https://github.com/oeg-upm/TINTOlib\",\n                      \"https://github.com/oeg-upm/auroral-mobility-Ontology\",\n                      \"https://github.com/oeg-upm/auroral-cellTower-ontology\",\n                      \"https://github.com/oeg-upm/auroral-cow-ontology\",\n                      \"https://github.com/oeg-upm/TINTOlib-Documentation\",\n                      \"https://github.com/oeg-upm/SancusDemo\",\n                      \"https://github.com/oeg-upm/kg-reconstruction-eval\",\n                      \"https://github.com/oeg-upm/FAIROS_DAMALOS_2023\",\n                      \"https://github.com/oeg-upm/esuk\",\n                      \"https://github.com/oeg-upm/cogito_final_thing_manager\",\n                      \"https://github.com/oeg-upm/seed-sensors-oeg\",\n                      \"https://github.com/oeg-upm/rmldoc\",\n                      \"https://github.com/oeg-upm/auroral-VehicleCharger-ontology\",\n                      \"https://github.com/oeg-upm/oeg-software-graph\",\n                      \"https://github.com/oeg-upm/PODIO\",\n                      \"https://github.com/oeg-upm/ai4labour\",\n                      \"https://github.com/oeg-upm/saref4grid\",\n                      \"https://github.com/oeg-upm/OntoRipple\",\n                      \"https://github.com/oeg-upm/Ethereum-ontology\",\n                      \"https://github.com/oeg-upm/inesdata-website\",\n                      \"https://github.com/oeg-upm/software_benchmark_demo\",\n                      \"https://github.com/oeg-upm/inesdata-ml-schema\",\n                      \"https://github.com/oeg-upm/LinkedOpenDataINE\",\n                      \"https://github.com/oeg-upm/bidirectional_paper_repository_scripts\",\n                      \"https://github.com/oeg-upm/AURORAL_Conformance\",\n                      \"https://github.com/oeg-upm/AURORAL_IA_Service\",\n                      \"https://github.com/oeg-upm/spanish-termex\",\n                      \"https://github.com/oeg-upm/sparql-query-demo\",\n                      \"https://github.com/oeg-upm/WoT-DT-ontology\",\n                      \"https://github.com/oeg-upm/cq4oe-benchmark\",\n                      \"https://github.com/oeg-upm/eelisa-lt-workshop\",\n                      \"https://github.com/oeg-upm/mderanklib\",\n                      \"https://github.com/oeg-upm/WoT-DT-ontology-v2\",\n                      \"https://github.com/oeg-upm/DOI-Extractor-OEG\",\n                      \"https://github.com/oeg-upm/Ontology-governance-framework\",\n                      \"https://github.com/oeg-upm/k-flares\",\n                      \"https://github.com/oeg-upm/solar-qa\",\n                      \"https://github.com/oeg-upm/agora-ontos\",\n                      \"https://github.com/oeg-upm/find_ChatGPT_mentions\",\n                      \"https://github.com/oeg-upm/ERA-SHACL-Benchmark\",\n                      \"https://github.com/oeg-upm/INELOD-Catalogue\",\n                      \"https://github.com/oeg-upm/inesdata-ai-services\",\n                      \"https://github.com/oeg-upm/OWLChangeOntology\",\n                      \"https://github.com/oeg-upm/telegram-dataset-builder\",\n                      \"https://github.com/oeg-upm/teresia-brat-server\",\n                      \"https://github.com/oeg-upm/solar-qa-eval\",\n                      \"https://github.com/oeg-upm/inesdata-map-editor\",\n                      \"https://github.com/oeg-upm/term2LD\",\n                      \"https://github.com/oeg-upm/foops_documentation_scripts\",\n                      \"https://github.com/oeg-upm/TINTOlib-Crash_Course\",\n                      \"https://github.com/oeg-upm/PromptRankLib\",\n                      \"https://github.com/oeg-upm/virc\",\n                      \"https://github.com/oeg-upm/OpenOEG\",\n                      \"https://github.com/oeg-upm/software_classification\",\n                      \"https://github.com/oeg-upm/rag-qa-generator\",\n                      \"https://github.com/oeg-upm/solar-ui\",\n                      \"https://github.com/oeg-upm/teresia-annotators\",\n                      \"https://github.com/oeg-upm/solar-qa-ui\",\n                      \"https://github.com/oeg-upm/soel-site\",\n                      \"https://github.com/oeg-upm/codemeta-crosswalk-mapping-methodology\",\n                      \"https://github.com/oeg-upm/solarchem-corpus\",\n                      \"https://github.com/oeg-upm/Articulos-HTML-Enlazado\",\n                      \"https://github.com/oeg-upm/terminology-utils\",\n                      \"https://github.com/oeg-upm/OOPS\",\n                      \"https://github.com/oeg-upm/term-rag\",\n                      \"https://github.com/oeg-upm/llm4oe-slr\",\n                      \"https://github.com/oeg-upm/rsfc\",\n                      \"https://github.com/oeg-upm/shacl-owl-kcap-2025\",\n                      \"https://github.com/oeg-upm/coraq\",\n                      \"https://github.com/oeg-upm/fair-by-design-web\",\n                      \"https://github.com/oeg-upm/DAOnt\",\n                      \"https://github.com/oeg-upm/GrOwEr\",\n                      \"https://github.com/oeg-upm/rsfc-service\",\n                      \"https://github.com/oeg-upm/kge-domain\",\n                      \"https://github.com/oeg-upm/gtfs-homogeneisation-analysis\",\n                      \"https://github.com/oeg-upm/dia-conversational-agent\",\n                      \"https://github.com/oeg-upm/spgf\",\n                      \"https://github.com/oeg-upm/GAP-KGE\",\n                      \"https://github.com/oeg-upm/mustdrifter\",\n                      \"https://github.com/oeg-upm/maseo\",\n                      \"https://github.com/oeg-upm/rsfc-action\",\n                      \"https://github.com/oeg-upm/NEUROGRAPH\",\n                      \"https://github.com/oeg-upm/BenchmarkingML4KGEmodelcards\",\n                      \"https://github.com/oeg-upm/saint-experiments-wp2-wp4\",\n                      \"https://github.com/lincedu/lincedu.github.io\",\n                      \"https://github.com/lincedu/modelos-ia\",\n                      \"https://github.com/dgarijo/Widoco\"\n                  ],\n    \"repo_count\":  332,\n    \"project\":  \"oeg-lincedu-widoco\"\n}\n",
+        "jsonOutput": "\n  {\n    \"repos_url\": [\n      \"https://github.com/oeg-upm/soca\"\n    ],\n    \"repo_count\": 1,\n    \"all_repos_url\": [\n      \"https://github.com/oeg-upm/soca\"\n    ],\n    \"all_repo_count\": 1,\n    \"repos_removed\": [],\n    \"removed_count\": 0,\n    \"has_changes\": true,\n    \"project\": \"test\"\n  }\n",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -479,7 +479,7 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1552,
+        1696,
         -48
       ],
       "id": "64cde548-077a-4840-a765-439c1820b87c",
@@ -488,7 +488,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"project\": \"test\",\n  \"organizations\": [],\n  \"extra_repositories\": [\"https://github.com/oeg-upm/soca\"],\n  \"launch_issue\": false,  \n  \"linkeddata_tools\": \"/app/outputs/linkeddata_tools.yml\"\n}",
+        "jsonOutput": "{ \n  \"project\": \"sergio-soca-incremental\", \n  \"organizations\": [ \n    { \"org\": \"SergioZSZ\", \n      \"type\": \"user\" } \n    ], \n  \"extra_repositories\": [\"https://github.com/oeg-upm/soca\",\n  \"https://github.com/oeg-upm/fair_ontologies\"], \n  \n\"launch_issue\": false, \n\"update_wikidata\": false,\n  \n\"linkeddata_tools\": \"/app/outputs/linkeddata_tools.yml\" }",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -503,7 +503,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"project\": \"sergio-soca-incremental\",\n  \"organizations\": [\n    {\n      \"org\": \"SergioZSZ\",\n      \"type\": \"user\"\n    }\n  ],\n  \"extra_repositories\": [\"https://github.com/oeg-upm/soca\"],\n  \"launch_issue\": false,  \n  \"linkeddata_tools\": \"/app/outputs/linkeddata_tools.yml\"\n}",
+        "jsonOutput": "{\n  \"project\": \"test\",\n  \"organizations\": [],\n  \"extra_repositories\": [\n    \"https://github.com/oeg-upm/soca\"\n  ],\n  \"launch_issue\": false,\n  \"update_wikidata\": false,\n  \n  \"linkeddata_tools\": \"/app/outputs/linkeddata_tools.yml\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -583,11 +583,63 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1120,
-        -64
+        1072,
+        -48
       ],
       "id": "b1666f4d-0116-440f-a55e-a173593b2491",
       "name": "Call 'rsmetacheck-bot_workfow'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "EX3h5IWchunn7cxH",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/EX3h5IWchunn7cxH",
+          "cachedResultName": "saltbot_workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "update_wikidata": "={{ $node[\"Conf\"].json.update_wikidata }}",
+            "project": "={{ $node[\"Conf\"].json.project }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "project",
+              "displayName": "project",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "update_wikidata",
+              "displayName": "update_wikidata",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        -48
+      ],
+      "id": "f2ede3c4-285a-4ed9-970c-85f1d11612c2",
+      "name": "Call 'saltbot_workflow'"
     }
   ],
   "pinData": {},
@@ -729,6 +781,17 @@
       "main": [
         [
           {
+            "node": "Call 'saltbot_workflow'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'saltbot_workflow'": {
+      "main": [
+        [
+          {
             "node": "Execute soca portal",
             "type": "main",
             "index": 0
@@ -742,7 +805,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "a9075f53-a3ae-48c6-b53c-d7655dcc4071",
+  "versionId": "73d03bb4-f683-4b4f-b6e6-b8b303a756a4",
   "meta": {
     "instanceId": "6177bb2190c233fe58db666087bf366235934ab541d37ef1876770361a8041d0"
   },

@@ -259,8 +259,20 @@ def resqui_indicators_generation(job_id, target, repo_url, base_dir, token, conf
             time.sleep(RESQUI_RETRY_DELAY_SECONDS)
 
         finally:
-            if staging_path.exists():
-                shutil.rmtree(staging_path)
+            try:
+                if staging_path.exists():
+                    shutil.rmtree(staging_path)
+
+                timestamp(
+                    f"[{job_id}] Temporary directory cleaned: "
+                    f"{staging_path}"
+                )
+
+            except OSError as exc:
+                timestamp(
+                    f"[{job_id}] ERROR cleaning temporary directory "
+                    f"{staging_path}: {exc}"
+                )
 
     if not succeeded:
         write_repository_failed_assessment(

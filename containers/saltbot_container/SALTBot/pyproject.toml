@@ -1,0 +1,31 @@
+[project]
+name = "saltbot"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "SergioZSZ",email = "s.zaballosh@gmail.com"}
+]
+license = {text = "Apache-2.0"}
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "somef (==0.11.5)",
+    "wikibaseintegrator (>=0.12.15,<0.13.0)",
+    "pyyaml (>=6.0.3,<7.0.0)",
+    "click-option-group (>=0.5.9,<0.6.0)",
+    "click (>=8.5.0,<9.0.0)",
+    "requests (>=2.34.2,<3.0.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "bibtexparser (>=2.0.1,<3.0.0)"
+]
+
+[project.scripts]
+saltbot = "SALTbot.SALTbot:cli"
+
+[tool.poetry]
+packages = [
+    { include = "SALTbot", from = "src" }
+]
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

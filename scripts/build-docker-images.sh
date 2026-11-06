@@ -56,8 +56,9 @@ build_image() {
 build_image "soca-heavy:latest" "containers/soca_container"
 build_image "rsfc-heavy:latest" "containers/rsfc_container"
 build_image "resqui-heavy:latest" "containers/resqui_container"
-build_image "rsmetacheck-bot:latest" "integrations/rsmetacheck-bot-0.6.0"
+build_image "rsmetacheck-bot:latest" "integrations/rsmetacheck-bot"
 build_image "rsmetacheck-bot-conf:latest" "containers/rsmetacheck-bot_container"
+build_image "saltbot-heavy:latest" "containers/saltbot_container/SALTBot"
 
 echo
 echo "Docker image build sequence completed."

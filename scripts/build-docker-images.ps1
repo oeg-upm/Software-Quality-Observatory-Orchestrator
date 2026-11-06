@@ -52,8 +52,10 @@ $images = @(
     @{ Image = "soca-heavy:latest"; Context = "containers\soca_container" },
     @{ Image = "rsfc-heavy:latest"; Context = "containers\rsfc_container" },
     @{ Image = "resqui-heavy:latest"; Context = "containers\resqui_container" },
-    @{ Image = "rsmetacheck-bot:latest"; Context = "integrations\rsmetacheck-bot-0.6.0" },
-    @{ Image = "rsmetacheck-bot-conf:latest"; Context = "containers\rsmetacheck-bot_container" }
+    @{ Image = "rsmetacheck-bot:latest"; Context = "integrations\rsmetacheck-bot" },
+    @{ Image = "rsmetacheck-bot-conf:latest"; Context = "containers\rsmetacheck-bot_container" },
+    @{ Image = "saltbot-heavy:latest"; Context = "containers\saltbot_container\SALTBot" }
+
 )
 
 foreach ($item in $images) {

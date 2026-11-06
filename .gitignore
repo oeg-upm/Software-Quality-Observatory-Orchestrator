@@ -4,9 +4,10 @@
 AGENTS.md
 
 
-# Environment variables
+# Environment variables & config files
 .env
 containers/.env
+config.yaml
 
 # Python virtual environments
 .venv/
@@ -45,4 +46,7 @@ postgres_data/
 Thumbs.db
 
 .codex
+containers/memory_monitor.sh
 
+plan_evaluacion.md
+plan_propio.md

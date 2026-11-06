@@ -67,7 +67,7 @@ def require_repo_centric_layout(path: Path, *, command_name: str) -> None:
         "Legacy snapshot layout detected at "
         f"{path}. This command expects the repo-centric state layout. "
         "Convert the legacy output first with:\n"
-        f"  uv run rsmetacheck-bot convert-legacy {hint_path} --target-root <converted-root>\n"
+        f"  uv run sw-metadata-bot convert-legacy {hint_path} --target-root <converted-root>\n"
         "If this is a parent folder containing dated snapshots, pass the specific "
         "snapshot directory, not the parent folder."
     )

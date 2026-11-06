@@ -1,0 +1,544 @@
+{
+  "name": "saltbot_workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "command": "=mkdir -p /root/.n8n-files/saltbot/{{ $node[\"Trigger\"].json.project }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -2176,
+        -112
+      ],
+      "id": "aaa7a742-2d53-4734-bddf-f4bdf7800dc3",
+      "name": "Create saltbot outputs dir"
+    },
+    {
+      "parameters": {
+        "command": "=docker run -d --rm \\\n--network containers_net \\\n-v \"{{ $env.OUTPUTS }}:/app/outputs\" \\\n-e WIKIBASE_USER={{ $env.WIKIBASE_USER }} \\\n-e WIKIBASE_PASSWORD={{ $env.WIKIBASE_PASSWORD }} \\\n-e GITHUB_API_TOKEN={{ $env.GITHUB_API_TOKEN }} \\\nsaltbot-heavy:latest \\\nsaltbot describe \\\n-a \\\n--jsondir /app/outputs/saltbot/{{ $node[\"Trigger\"].json.project }}/metadata-selected \\\n--output-dir /app/outputs/saltbot/{{ $node[\"Trigger\"].json.project }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1824,
+        -112
+      ],
+      "id": "ef2be3bd-597f-4087-aa72-6f1f29d5b579",
+      "name": "saltbot describe",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "processing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "17763253-5934-4e8a-9979-e392628ee8ea"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "25eed139-4d1a-4330-be92-bb735eaeb259",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "completed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7f0c25cb-81f0-47f6-8200-4a7b735e2174",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "failed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        -160
+      ],
+      "id": "b3662bfe-4552-41d1-92c0-499163f5fb4a",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "errorMessage": "=SALTBot failed: {{ JSON.stringify($json.failed_repos || []) }}"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -80
+      ],
+      "id": "e8e7f87b-499d-4ed6-8124-8b36057d9b09",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "command": "=cat \"/root/.n8n-files/saltbot/{{$node[\"Trigger\"].json.project}}/status.json\"\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        -144
+      ],
+      "id": "c5208a89-a8c4-4f27-985d-9137f5854350",
+      "name": "read SALTBot status"
+    },
+    {
+      "parameters": {
+        "jsCode": "const status = JSON.parse($json.stdout.trim());\n\nreturn [{\n  json: status,\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -144
+      ],
+      "id": "9a6c1a43-62e0-4a7c-8e0d-d182a226c623",
+      "name": "Parse SALTBot status"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        16
+      ],
+      "id": "891f1853-c269-4527-a94f-03d68c0fe927",
+      "name": "Wait",
+      "webhookId": "6ddc46bd-8f5f-45d5-a3d0-03f984f5d555"
+    },
+    {
+      "parameters": {
+        "command": "=if [ ! -s \"/root/.n8n-files/saltbot/{{$node[\"Trigger\"].json.project}}/operation_list.txt\" ]; then\n  echo \"No SALTBot operations to update\"\n  exit 0\nfi\n\ndocker run --rm \\\n--network containers_net \\\n-v \"{{ $env.OUTPUTS }}:/app/outputs\" \\\n-e WIKIBASE_USER={{ $env.WIKIBASE_USER }} \\\n-e WIKIBASE_PASSWORD={{ $env.WIKIBASE_PASSWORD }} \\\n-e GITHUB_API_TOKEN={{ $env.GITHUB_API_TOKEN }} \\\nsaltbot-heavy:latest \\\nsaltbot update \\\n-a \\\n--file /app/outputs/saltbot/{{ $node[\"Trigger\"].json.project }}/operation_list.txt"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -384
+      ],
+      "id": "33699508-21bd-4d90-871c-2eea71813198",
+      "name": "saltbot update",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{\n  {\n    ...$node[\"Trigger\"].json,\n    saltbot_status: $node[\"Parse SALTBot status\"].json\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        -384
+      ],
+      "id": "890c9057-6be9-4c60-9ab5-41f5d3414c06",
+      "name": "response"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1664,
+        -112
+      ],
+      "id": "035354a9-e372-47ef-a2c2-e04efb8e8e3d",
+      "name": "Wait1",
+      "webhookId": "e312b185-eacd-4ea4-b8b9-59361decb168"
+    },
+    {
+      "parameters": {
+        "command": "=if [ -f \"/root/.n8n-files/saltbot/{{$node[\"Trigger\"].json.project}}/status.json\" ]; then\n  echo '{\"exists\":true}'\nelse\n  echo '{\"exists\":false}'\nfi"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        -112
+      ],
+      "id": "2f892bd0-4aa3-4648-ad8c-1312b544fb6f",
+      "name": "check status exists"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: JSON.parse($json.stdout.trim()),\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        -112
+      ],
+      "id": "e6c466aa-1203-47a9-8d45-cb7e087335fc",
+      "name": "exists parse"
+    },
+    {
+      "parameters": {
+        "errorMessage": "=SALTBot did not create status.json within 30 seconds"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        272
+      ],
+      "id": "5ded20a2-3a93-4966-a8eb-6fbe47e8d70b",
+      "name": "Stop and Error1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "af797aa4-54ee-46aa-8735-fcf058e769f2",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1200,
+        -112
+      ],
+      "id": "e8cea749-d8e6-474d-9fc6-b855eae0aeb0",
+      "name": "if exists status"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f48b77e6-d974-449f-8935-fc46effce1a6",
+              "leftValue": "={{ $node[\"Trigger\"].json.update_wikidata }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -144,
+        -208
+      ],
+      "id": "c409d2d0-61fc-4107-b7a9-fc950c812118",
+      "name": "If update wikidata"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=set -e\n\nSRC=\"/root/.n8n-files/soca/{{ $node[\"Trigger\"].json.project }}/metadata\"\nDST=\"/root/.n8n-files/saltbot/{{ $node[\"Trigger\"].json.project }}/metadata-selected\"\n\nrm -rf \"$DST\"\nmkdir -p \"$DST\"\n\n{{ $node[\"Trigger\"].json.repos_url.map(url => {\n  const clean = url.replace('https://github.com/', '').replace(/\\/$/, '');\n  const [owner, repo] = clean.split('/');\nconst repoFile = repo.replace(/\\./g, '-');\nreturn `find \"$SRC\" -maxdepth 1 -type f -name '${owner}_${repoFile}_*.json' | sort | tail -n 1 | while read f; do cp \"$f\" \"$DST/\"; done`;\n}).join('\\n') }}\n\ncount=$(find \"$DST\" -maxdepth 1 -type f -name '*.json' | wc -l | tr -d ' ')\n\necho \"{\\\"selected_metadata_count\\\":$count,\\\"expected_repos\\\":{{ $node[\"Trigger\"].json.repos_url.length }},\\\"metadata_dir\\\":\\\"$DST\\\"}\"\n\ntest \"$count\" -eq \"{{ $node[\"Trigger\"].json.repos_url.length }}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -2000,
+        -112
+      ],
+      "id": "29f839a8-486b-45d0-b2e4-186676159065",
+      "name": "Prepare SALTBot metadata dir"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"repos_url\": [],\n  \"repo_count\": 0,\n  \"repos_removed\": [],\n  \"removed_count\": 0,\n  \"has_changes\": false,\n  \"project\": \"project-name\",\n  \"update_wikidata\": false\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2560,
+        -112
+      ],
+      "id": "4035ae6c-2c6b-4937-8e76-04a785d29154",
+      "name": "Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Create saltbot outputs dir": {
+      "main": [
+        [
+          {
+            "node": "Prepare SALTBot metadata dir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If update wikidata",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read SALTBot status": {
+      "main": [
+        [
+          {
+            "node": "Parse SALTBot status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "saltbot describe": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse SALTBot status": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "read SALTBot status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "saltbot update": {
+      "main": [
+        [
+          {
+            "node": "response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "check status exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check status exists": {
+      "main": [
+        [
+          {
+            "node": "exists parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exists parse": {
+      "main": [
+        [
+          {
+            "node": "if exists status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if exists status": {
+      "main": [
+        [
+          {
+            "node": "read SALTBot status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If update wikidata": {
+      "main": [
+        [
+          {
+            "node": "saltbot update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare SALTBot metadata dir": {
+      "main": [
+        [
+          {
+            "node": "saltbot describe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create saltbot outputs dir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "daf4a1fa-ef20-4f68-a86f-373bfe7f05db",
+  "meta": {
+    "instanceId": "6177bb2190c233fe58db666087bf366235934ab541d37ef1876770361a8041d0"
+  },
+  "nodeGroups": [],
+  "id": "EX3h5IWchunn7cxH",
+  "tags": []
+}

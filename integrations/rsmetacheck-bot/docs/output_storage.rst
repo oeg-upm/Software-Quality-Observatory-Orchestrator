@@ -65,7 +65,7 @@ migrates its repository entries into the repo-centric layout.
 
 Example::
 
-   uv run rsmetacheck-bot convert-legacy outputs/legacy_batch/202603 --target-root outputs/converted
+   uv run sw-metadata-bot convert-legacy outputs/legacy_batch/202603 --target-root outputs/converted
 
 Do not pass a parent folder that contains multiple dated snapshots. The command
 expects a single snapshot root.

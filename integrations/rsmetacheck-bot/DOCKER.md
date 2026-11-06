@@ -25,18 +25,18 @@ docker run --rm \
   -v /path/to/config.json:/app/config.json:ro \
   -v /path/to/outputs:/app/outputs \
   rsmetacheck-bot:latest \
-  rsmetacheck-bot run-analysis --config-file /app/config.json
+  rsmetacheck-bot run-analysis --config /app/config.json
 ```
 
 #### Run with Environment Variables
 
 ```bash
 docker run --rm \
-  -e GITHUB_API_TOKEN=your_token_here \
+  -e GITHUB_TOKEN=your_token_here \
   -v /path/to/config.json:/app/config.json:ro \
   -v /path/to/outputs:/app/outputs \
   rsmetacheck-bot:latest \
-  rsmetacheck-bot run-analysis --config-file /app/config.json
+  rsmetacheck-bot run-analysis --config /app/config.json
 ```
 
 ## Docker Compose
@@ -53,7 +53,7 @@ docker-compose run --rm bot rsmetacheck-bot --help
 ### Run Analysis
 
 ```bash
-docker-compose run --rm bot rsmetacheck-bot run-analysis --config-file /app/config.json
+docker-compose run --rm bot rsmetacheck-bot run-analysis --config /app/config.json
 ```
 
 ### Development Container
@@ -143,10 +143,10 @@ Configure the bot via environment variables:
 ```bash
 # Example with token
 docker run --rm \
-  -e GITHUB_API_TOKEN=ghp_xxxx \
-  -e GITLAB_API_TOKEN=glpat_xxxx \
+  -e GITHUB_TOKEN=ghp_xxxx \
+  -e GITLAB_TOKEN=glpat_xxxx \
   rsmetacheck-bot:latest \
-  rsmetacheck-bot run-analysis --config-file /app/config.json
+  rsmetacheck-bot run-analysis --config /app/config.json
 ```
 
 ### Volume Mounts

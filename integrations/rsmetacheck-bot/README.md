@@ -3,13 +3,13 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19468976.svg)](https://doi.org/10.5281/zenodo.19468976)
 [![SWH](https://archive.softwareheritage.org/badge/swh:1:dir:9f3d474c040158cc675e8db135767e0d2d3fba7b/)](https://archive.softwareheritage.org/swh:1:dir:9f3d474c040158cc675e8db135767e0d2d3fba7b;origin=https://github.com/SoftwareUnderstanding/rsmetacheck-bot;visit=swh:1:snp:03da984544982fdf5aa1f556012b917250f1e4c3;anchor=swh:1:rev:fc64150edf2e35f045cf3858d81b00ca6e7f6e68)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)](https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases)
+[![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)](https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases)
 [![Python 3.11--3.12](https://img.shields.io/badge/python-3.11--3.12-blue.svg)](https://www.python.org/downloads/)
 [![CI (build)](https://github.com/SoftwareUnderstanding/rsmetacheck-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/SoftwareUnderstanding/rsmetacheck-bot/actions/workflows/ci.yml)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 ![coverage](coverage.svg)
 ![interrogate](interrogate_badge.svg)
-[![rsmetacheck Validation](https://github.com/SoftwareUnderstanding/rsmetacheck-bot/actions/workflows/rsmetacheck.yml/badge.svg)](https://github.com/SoftwareUnderstanding/rsmetacheck-bot/actions/workflows/rsmetacheck.yml)
+[![rsmetacheck Validation](https://github.com/SoftwareUnderstanding/sw-metadata-bot/actions/workflows/rsmetacheck.yml/badge.svg)](https://github.com/SoftwareUnderstanding/sw-metadata-bot/actions/workflows/rsmetacheck.yml)
 
 
 An automated bot that analyzes repository metadata quality and creates issues with improvement suggestions.
@@ -118,7 +118,7 @@ Use these commands when validating the bot without creating live issues:
 1. Legacy snapshot conversion
 
 ```bash
-uv run rsmetacheck-bot convert-legacy outputs/legacy_snapshot --target-root outputs/converted
+uv run sw-metadata-bot convert-legacy outputs/legacy_snapshot --target-root outputs/converted
 ```
 
 This converts a legacy snapshot tree into the current repo-centric layout without publishing anything.
@@ -126,7 +126,7 @@ This converts a legacy snapshot tree into the current repo-centric layout withou
 2. Fresh dry-run analysis from scratch
 
 ```bash
-uv run rsmetacheck-bot run-analysis --config-file config.json --snapshot-tag 202603
+uv run sw-metadata-bot run-analysis --config-file config.json --snapshot-tag 202603
 ```
 
 This writes analysis outputs and run reports, but remains dry-run and does not create issues.
@@ -134,7 +134,7 @@ This writes analysis outputs and run reports, but remains dry-run and does not c
 3. Simulated publish review
 
 ```bash
-uv run rsmetacheck-bot simulate-publish --analysis-root outputs/batch-a/202603
+uv run sw-metadata-bot simulate-publish --analysis-root outputs/batch-a/202603
 ```
 
 This replays the analysis decisions with a fake issue client so you can review the generated issue bodies and opt-out logic without spamming real repositories.

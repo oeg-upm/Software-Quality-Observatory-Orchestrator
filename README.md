@@ -80,7 +80,7 @@ RESQUI uses the same staging, state and removed-result deletion pattern as RSFC.
 
 ### rsmetacheck-bot
 
-The `rsmetacheck-bot:latest` and `rsmetacheck-bot-conf:latest` images contain rsmetacheck-bot 0.6.0 and the required NLTK/SOMEF resources.
+The `rsmetacheck-bot:latest` and `rsmetacheck-bot-conf:latest` images contain rsmetacheck-bot 0.6.1 and the required NLTK/SOMEF resources.
 
 n8n generates a `config.json` with the complete inventory. The bot locates the previous snapshot, compares commits and copies the artifacts from unchanged repositories. Reports are stored in `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`; this path is kept for compatibility with the SOCA portal even though the executable is now `rsmetacheck-bot`.
 
@@ -184,7 +184,7 @@ just check-deps
 - RSFC 0.2.0: <https://github.com/oeg-upm/rsfc/releases/tag/v0.2.0>
 - SOMEF 0.11.1: <https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1>
 - DashVERSE 0.3.0: <https://github.com/EVERSE-ResearchSoftware/DashVERSE/releases/tag/v0.3.0>
-- rsmetacheck-bot 0.6.0: <https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases>
+- rsmetacheck-bot 0.6.1: <https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases>
 - RsMetaCheck >= 0.3.6: <https://github.com/SoftwareUnderstanding/rsmetacheck/releases>
 
 ## 6. Installation and Deployment
@@ -217,22 +217,6 @@ Keep in mind:
 
 Follow these steps in order.
 
-#### 0. Check the vendored QualityPipelines source
-
-SQOO includes RESQUI/QualityPipelines as raw source in `containers/resqui_container/QualityPipelines`. The vendored source is pinned in the documentation to upstream commit `98eb8efb83bd17e8e020bf11e8195b204c9453fd` from `EVERSE-ResearchSoftware/QualityPipelines` `main`.
-
-If cloning the repository from scratch, use:
-
-```bash
-git clone https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator.git
-```
-
-No extra dependency checkout step is required for RESQUI. To check that the local source is present:
-
-```bash
-test -d containers/resqui_container/QualityPipelines
-```
-
 #### 1. Build Docker images
 
 The images can be built with `scripts/build-docker-images.sh` on WSL/Linux or `scripts/build-docker-images.ps1` in PowerShell.
@@ -243,7 +227,7 @@ Equivalent commands:
 docker build -t soca-heavy containers/soca_container
 docker build -t rsfc-heavy containers/rsfc_container
 docker build -t resqui-heavy containers/resqui_container
-docker build -t rsmetacheck-bot integrations/rsmetacheck-bot-0.6.0
+docker build -t rsmetacheck-bot integrations/rsmetacheck-bot
 docker build -t rsmetacheck-bot-conf containers/rsmetacheck-bot_container
 ```
 
@@ -478,7 +462,37 @@ If the port-forwards are not active:
 just forward_address=0.0.0.0 port-forward
 ```
 
-## 8. Studies on the Project
+## 8. Usage 
+
+Once SQOO is deployed, open n8n at `http://localhost:5678`, select `SQOO_modular_workflow` and edit the raw JSON in the `Conf` node. For example:
+
+```json
+{
+  "project": "oeg-quality",
+  "organizations": [
+    {"org": "oeg-upm", "type": "org"}
+  ],
+  "extra_repositories": [
+    "https://github.com/EVERSE-ResearchSoftware/DashVERSE"
+  ],
+  "launch_issue": false,
+  "update_wikidata": false,
+  "linkeddata_tools": "/app/outputs/linkeddata_tools.yml"
+}
+```
+
+| Field | Purpose |
+| --- | --- |
+| `project` | Stable name used for output directories and incremental state. |
+| `organizations` | GitHub organizations or users to discover; `type` must be `org` or `user`. |
+| `extra_repositories` | Additional GitHub repository URLs; use `[]` when none are needed. |
+| `launch_issue` | When `true`, rsmetacheck-bot publishes GitHub issues. |
+| `update_wikidata` | When `true`, SALTBot applies its generated updates to the configured Wikibase instance. |
+| `linkeddata_tools` | Container path to the YAML configuration used to generate the linked-data portal. |
+
+Click **Execute workflow** and follow the execution in n8n. Results are written below `containers/outputs/<component>/<project>/`, and the generated portal is available at `http://localhost:8030/portals/<project>/`. Keep `launch_issue` and `update_wikidata` set to `false` unless external writes are intended and the required credentials are configured.
+
+## 9. Studies on the Project
 
 ### Worker Parallelism Assessment
 
@@ -488,7 +502,7 @@ just forward_address=0.0.0.0 port-forward
 
 **In progress**
 
-## 9. Support
+## 10. Support
 
 For any problem, open an issue at:
 

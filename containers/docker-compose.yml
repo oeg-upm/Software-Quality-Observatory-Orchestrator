@@ -29,6 +29,8 @@ services:
       - DASHBOARD_REPO_EMBED_ID=${DASHBOARD_REPO_EMBED_ID}
       - SUPERSET_PUBLIC_DOMAIN=${SUPERSET_PUBLIC_DOMAIN:-http://host.docker.internal:8088}
       - DASHVERSE_JWT=${DASHVERSE_JWT}
+      - WIKIBASE_USER=${WIKIBASE_USER}
+      - WIKIBASE_PASSWORD=${WIKIBASE_PASSWORD}
       # *** General ***
       - GENERIC_TIMEZONE=Europe/Madrid
       - TZ=Europe/Madrid
@@ -56,6 +58,11 @@ services:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: password123
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
     volumes:
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     networks:

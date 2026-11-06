@@ -11,8 +11,8 @@ services:
       # Configuration - customize as needed
       RSMETACHECK_BOT_CONFIG: /app/config.json
       # Optional: Add GitHub/GitLab tokens via environment
-      # GITHUB_API_TOKEN: ${GITHUB_API_TOKEN}
-      # GITLAB_API_TOKEN: ${GITLAB_API_TOKEN}
+      # GITHUB_TOKEN: ${GITHUB_TOKEN}
+      # GITLAB_TOKEN: ${GITLAB_TOKEN}
     volumes:
       # Mount config file
       - ./config.json:/app/config.json:ro
@@ -21,7 +21,7 @@ services:
       # Mount input files if needed
       - ./assets:/app/assets:ro
     # Uncomment to override the default command
-    # command: uv run rsmetacheck-bot run-analysis --config-file /app/config.json
+    # command: uv run rsmetacheck-bot run-analysis --config /app/config.json
     restart: "no"
 
   # Development container with dev dependencies

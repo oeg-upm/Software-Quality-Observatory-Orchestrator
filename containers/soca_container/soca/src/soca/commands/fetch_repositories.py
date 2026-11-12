@@ -55,20 +55,31 @@ def _github_get(url, params, headers):
     if headers:
         request_kwargs["headers"] = headers
 
-    for attempt in range(1, GITHUB_MAX_RETRIES + 1):
-        response = requests.get(**request_kwargs)
-        if (
-            response.status_code in RETRYABLE_GITHUB_STATUS_CODES
-            and attempt < GITHUB_MAX_RETRIES
-        ):
-            print(
-                f"GitHub returned {response.status_code}; "
-                f"retrying in {GITHUB_RETRY_SECONDS}s..."
-            )
-            time.sleep(GITHUB_RETRY_SECONDS)
-            continue
+    for attempt in range(GITHUB_MAX_RETRIES + 1):
+        try:
+            response = requests.get(**request_kwargs)
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            reason = f"{type(exc).__name__}: {exc}"
+            if attempt == GITHUB_MAX_RETRIES:
+                print(
+                    f"GitHub retries exhausted ({url}, page {params.get('page')}): {reason}",
+                    flush=True,
+                )
+                raise
+        else:
+            if (
+                response.status_code not in RETRYABLE_GITHUB_STATUS_CODES
+                or attempt == GITHUB_MAX_RETRIES
+            ):
+                return response
+            reason = f"HTTP {response.status_code} {response.reason}"
 
-        return response
+        print(
+            f"GitHub request failed ({url}, page {params.get('page')}): {reason}; "
+            f"retry {attempt + 1}/{GITHUB_MAX_RETRIES} in {GITHUB_RETRY_SECONDS}s...",
+            flush=True,
+        )
+        time.sleep(GITHUB_RETRY_SECONDS)
 
 
 def fetch(input, output, type, not_archived, not_forked, not_disabled):

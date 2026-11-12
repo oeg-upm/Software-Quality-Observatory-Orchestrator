@@ -28,7 +28,7 @@ Compared with `oeg-upm/soca` upstream `main` at commit `51ae44532f9530b41ec79a16
   - reads the GitHub token from SOMEF configuration or from `GITHUB_TOKEN`/`GITHUB_API_TOKEN`;
   - normalizes authorization headers;
   - adds request timeouts;
-  - retries transient GitHub `502`, `503` and `504` responses;
+  - retries connection errors, timeouts and GitHub `502`/`503`/`504` responses up to three times, logging the cause, page and retry number;
   - fails with a non-zero error instead of silently accepting partial repository inventories.
 - Improved the classic SOCA portal UI:
   - replaced the previous neumorphic styling with a flatter, clearer card and filter layout;

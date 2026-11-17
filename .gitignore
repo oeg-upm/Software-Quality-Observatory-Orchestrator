@@ -46,7 +46,7 @@ postgres_data/
 Thumbs.db
 
 .codex
-containers/memory_monitor.sh
+evaluation
 
 plan_evaluacion.md
 plan_propio.md

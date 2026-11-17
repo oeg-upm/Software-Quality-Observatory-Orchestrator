@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FOOPS! Catalogue</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <style>
+    .foops-header {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .foops-logo {
+      height: 50px;
+      margin-bottom: 10px;
+    }
+    .panel-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .panel-body {
+      min-height: 100px;
+    }
+    .panel-t { background-color: #5990a9; color: white; }
+    .panel-m { background-color: #83d2f7; color: white; }
+    .panel-b { background-color: #bb8fc3; color: white; }
+
+    .panel-heading { font-weight: bold; text-align: center; }
+    .panel-body { background-color: white; color: #333; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="foops-header">
+      <h1>RSFC Catalogue</h1>
+    </div>
+
+    <!-- Panels -->
+    <div class="row" style="margin-top: 30px;">
+      <div class="col-md-4">
+        <div class="panel panel-t">
+          <div class="panel-heading text-center">
+            <span class="panel-title">TESTS</span>
+          </div>
+          <div class="panel-body text-center">
+            <p>Explore all available RSFC tests.</p>
+            <p style="font-size: 22px;">{{number_test}}</p>
+            <a href="https://oeg-upm.github.io/rsfc/doc/catalog.html#test" class="btn btn-default">Go to Tests</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="panel panel-m">
+          <div class="panel-heading text-center">
+            <span class="panel-title">INDICATORS</span>
+          </div>
+          <div class="panel-body text-center">
+            <p>Explore the indicators from EVERSE used in RSFC</p>
+            <p style="font-size: 22px;">14 Indicators</p>
+            <a href="https://everse.software/indicators/website/indicators.html" class="btn btn-default">Go to Indicators</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="panel panel-b">
+          <div class="panel-heading text-center">
+            <span class="panel-title">BENCHMARKS</span>
+          </div>
+          <div class="panel-body text-center">
+            <p>View benchmarks.</p>
+            <p style="font-size: 22px;">{{number_benchmark}}</p>
+            <a href="https://oeg-upm.github.io/rsfc/doc/catalog.html#benchmark" class="btn btn-default">Go to Benchmarks</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 text-center" style="margin-top: 40px;">
+            <!-- DOI badge -->
+            <p>
+            <a href="https://doi.org/10.5281/zenodo.16531481" target="_blank">
+                <img src="https://zenodo.org/badge/993095977.svg" alt="DOI badge" style="vertical-align: middle;">
+            </a>
+            </p>
+
+            <!-- Title -->
+            <h2 style="margin-top: 20px;">Research Software Fairness Checks (RSFC)</h2>
+
+            <!-- Description -->
+            <p style="max-width: 700px; margin: 0 auto; font-size: 16px;">
+            <strong>RSFC</strong> is a command-line interface designed to automatically evaluate the quality of a GitHub or GitLab repository.
+            </p>
+
+            <!-- Authors -->
+            <p style="margin-top: 20px; font-size: 16px;">
+            <strong>Authors:</strong> Daniel Garijo and Andrés Montero
+            </p>
+
+            <!-- Features -->
+            <p style="max-width: 700px; margin: 20px auto; font-size: 16px;">
+            Given a repository URL, RSFC performs a series of checks based on a curated list of <strong>Research Software Quality Indicators (RSQI)</strong>.
+            </p>
+
+            <!-- RSQI description -->
+            <p style="max-width: 700px; margin: 0 auto; font-size: 16px;">
+            RSQI: A research software quality indicator represents a measurable aspect of software, such as <em>FAIRness</em>, <em>test coverage</em>, or <em>documentation completeness</em>.
+            </p>
+
+            <!-- EVERSE logo and link -->
+            <p style="margin-top: 30px;">
+            <a href="https://everse.software/indicators/website/indicators.html" target="_blank">
+                <img src="assets/everse_logo.png" alt="EVERSE logo" style="height: 40px;">
+            </a>
+            </p>
+            <p style="font-size: 14px;">
+            RSQI are maintained and published by the <a href="https://everse.software/" target="_blank">EVERSE initiative</a>.
+            </p>
+        </div>
+    </div>
+
+
+  </div>
+
+</body>
+</html>

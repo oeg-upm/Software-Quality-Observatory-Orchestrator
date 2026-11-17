@@ -1,0 +1,212 @@
+from datetime import datetime
+import regex as re
+import base64
+from bs4 import BeautifulSoup
+import requests
+from rsfc.utils import constants
+import requests
+from requests.exceptions import RequestException
+
+def decode_github_content(content_json):
+    encoded_content = content_json.get('content', '')
+    encoding = content_json.get('encoding', '')
+
+    if encoding == 'base64':
+        return base64.b64decode(encoded_content).decode('utf-8', errors='ignore')
+    else:
+        return encoded_content
+
+
+def subtest_author_orcids(file_data):
+    
+    if "author" in file_data: #Codemeta
+        for item in file_data["author"]:
+            type_field = None
+            id_field = None
+            
+            if 'type' in item:
+                type_field = 'type'
+            elif '@type' in item:
+                type_field = '@type'
+                
+            if 'id' in item:
+                id_field = 'id'
+            elif '@id' in item:
+                id_field = '@id'
+                
+                
+            if type_field != None and id_field != None:
+                if type_field in item and item[type_field] == "Person":
+                    if id_field in item and "https://orcid.org/" in item[id_field]:
+                        continue
+                    else:
+                        return False
+    elif "authors" in file_data: #CFF
+        for item in file_data["authors"]:
+            if "orcid" in item:
+                continue
+            else:
+                return False
+    else:
+        return False
+        
+    return True
+        
+
+def build_url_pattern(url):
+    base_url = url.rsplit('/', 1)[0]
+    escaped = re.escape(base_url)
+    pattern_str = f"^{escaped}/\\d+$"
+    return re.compile(pattern_str)
+
+
+def get_latest_release(repo_data):
+    if 'releases' in repo_data:
+        latest_release = None
+        latest_date = None
+        for item in repo_data['releases']:
+            if item['result']['date_published'] and item['result']['tag']:
+                dt = item['result']['date_published']
+                try:
+                    dt = datetime.fromisoformat(dt.rstrip('Z'))
+                except ValueError:
+                    continue
+                
+                if latest_release is None or dt > latest_date:
+                    latest_release = item['result']['tag']
+                    latest_date = dt
+    else:
+        latest_release = None
+                
+    if latest_release != None:
+        return latest_release
+    else:
+        return None
+    
+    
+def extract_issue_refs(commits):
+    
+    issue_regex_compiled = re.compile(constants.REGEX_ISSUE_REF, re.IGNORECASE)
+    
+    issue_refs = set()
+    for commit in commits:
+        message = commit.get("commit", {}).get("message", "")
+        matches = issue_regex_compiled.findall(message)
+        issue_refs.update(matches)
+    return issue_refs
+
+
+def check_issue(issue, issue_refs):
+
+    issue_id = str(issue.get("number") or issue.get("iid"))
+    return issue_id in issue_refs
+
+
+def cross_check_any_issue(issues, commits_list):
+    found_links = []
+    
+    for commit in commits_list:
+        commit_message = commit.get('message') or commit.get('commit', {}).get('message', '')
+        commit_sha = (commit.get("id") or commit.get("sha", ""))[:7]
+        
+        for issue in issues:
+            issue_number = issue.get("iid") or issue.get("number")
+            
+            if f"#{issue_number}" in commit_message:
+                found_links.append(f"Commit '{commit_sha}' linked to Issue #{issue_number}")
+                
+    return found_links
+
+
+def normalize_identifier_url(identifier):
+    
+    if isinstance(identifier, list):
+        identifier = next((item for item in identifier if item), "")
+
+    if isinstance(identifier, dict):
+        identifier = identifier.get("value", "")
+
+    identifier = identifier.strip()
+    lower = identifier.lower()
+
+    #Already normalized
+    if lower.startswith("https://doi.org/") or lower.startswith("http://doi.org/"):
+        return identifier
+
+    #Raw DOI
+    if re.match(constants.DOI_SCHEMA_REGEX, identifier, re.IGNORECASE):
+        return f"https://doi.org/{identifier}"
+
+    #DOI prefix
+    if lower.startswith("doi:"):
+        doi = identifier.split(":", 1)[1].strip()
+        return f"https://doi.org/{doi}"
+
+    #Other
+    if lower.startswith(("http://", "https://")):
+        try:
+            resp = requests.head(identifier, allow_redirects=True)
+            return resp.url
+        except requests.RequestException:
+            return identifier
+
+    #Fallback
+    return identifier
+
+
+def landing_page_links_back(lp_html, repo_url):
+    
+    if not lp_html:
+        return False
+    
+    repo_norm = repo_url.rstrip("/").lower()
+    soup = BeautifulSoup(lp_html, "html.parser")
+
+    for a in soup.find_all("a", href=True):
+        if repo_norm in a["href"].rstrip("/").lower():
+            return True
+
+    for m in soup.find_all("meta"):
+        content = (m.get("content") or "").lower()
+        if repo_norm in content:
+            return True
+
+    return False
+
+
+def resolve_w3id(url):
+    
+    if "w3id.org" not in url:
+        return url   
+
+    try:
+        response = requests.get(url, allow_redirects=True, timeout=10)
+        return response.url
+    except RequestException:
+        print("Error resolving the w3id")
+        return None
+    
+ 
+def remove_git_from_url(url):
+
+    if url and url.endswith(".git"):
+        return url[:-4]
+
+    return url
+
+def generate_badge(checks):
+    
+    passed_tests = sum(check.get("output", "") == "true" for check in checks)
+    total_checks = len(checks)
+    score = round((passed_tests/total_checks)*100)
+    
+    if score >= 90:
+        color = "brightgreen"
+    elif score >= 70:
+        color = "green"
+    elif score >= 50:
+        color = "yellow"
+    else:
+        color = "red"
+    
+    return f"[![RSFC_Coverage](https://img.shields.io/badge/rsfc-coverage_{score}%25-{color})](./RSFC_REPORT.md)"

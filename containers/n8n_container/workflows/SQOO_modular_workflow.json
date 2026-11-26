@@ -549,11 +549,11 @@
           "value": {
             "update_wikidata": "={{ $node[\"Conf\"].json.update_wikidata }}",
             "project": "={{ $node[\"Conf\"].json.project }}",
-            "repo_count": "={{ $node[\"Call 'soca_workflow'\"].json.repo_count }}",
-            "removed_count": "={{ $node[\"Call 'soca_workflow'\"].json.removed_count }}",
-            "repos_url": "={{ $node[\"Call 'soca_workflow'\"].json.all_repos_url }}",
-            "repos_removed": "={{ $node[\"Call 'soca_workflow'\"].json.repos_removed }}",
-            "has_changes": "={{ $node[\"Call 'soca_workflow'\"].json.has_changes === true || String($json.has_changes).trim().toLowerCase() === 'true' }}"
+            "repo_count": "={{ $node[\"Call 'soca_workflowV2'\"].json.repo_count }}",
+            "removed_count": "={{ $node[\"Call 'soca_workflowV2'\"].json.removed_count }}",
+            "repos_url": "={{ $node[\"Call 'soca_workflowV2'\"].json.all_repos_url }}",
+            "repos_removed": "={{ $node[\"Call 'soca_workflowV2'\"].json.repos_removed }}",
+            "has_changes": "={{ $node[\"Call 'soca_workflowV2'\"].json.has_changes === true || String($json.has_changes).trim().toLowerCase() === 'true' }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -797,7 +797,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "012d3444-614b-4ff7-8537-9cd70106f0f4",
+  "versionId": "7de70691-c3f7-4a97-8af9-d511ef264a82",
   "meta": {
     "instanceId": "6ae01ffae2746b93227f3cb88de56051eafa6b20bd70620b9c013973f40b4cc3"
   },

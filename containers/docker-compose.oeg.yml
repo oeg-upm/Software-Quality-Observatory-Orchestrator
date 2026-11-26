@@ -12,6 +12,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./dashverse_runner:/opt/dashverse_runner:ro
       - ./outputs:/root/.n8n-files
+      - ./scripts/backup_outputs.sh:/opt/scripts/backup_outputs.sh:ro
+      - ./backups:/data/backups
     depends_on:
       - rabbitmq
     group_add:
@@ -26,6 +28,8 @@ services:
       - DASHVERSE_JWT=${DASHVERSE_JWT}
       - WIKIBASE_USER=${WIKIBASE_USER}
       - WIKIBASE_PASSWORD=${WIKIBASE_PASSWORD}
+      - OPENALEX_API_KEY=${OPENALEX_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL}
       # *** General ***
       - GENERIC_TIMEZONE=Europe/Madrid
       - TZ=Europe/Madrid
@@ -164,6 +168,38 @@ services:
     networks:
       - net
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - net
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama-init
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - LLM_MODEL=${LLM_MODEL}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - ollama pull "$$LLM_MODEL"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - net
+    restart: "no"
+
 
 
 networks:
@@ -173,3 +209,4 @@ networks:
 volumes:
   resqui_work:
     name: sqoo_resqui_work
+  ollama_data:

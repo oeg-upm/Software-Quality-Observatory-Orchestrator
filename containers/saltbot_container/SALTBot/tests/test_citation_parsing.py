@@ -283,6 +283,9 @@ def test_query_openalex_by_doi_uses_the_doi_filter(monkeypatch):
     request = {}
 
     class Response:
+        def raise_for_status(self):
+            pass
+
         def json(self):
             return {"meta": {"count": 1}, "results": [expected_work]}
 
@@ -320,6 +323,9 @@ def test_query_openalex_falls_back_to_all_corpora(monkeypatch):
         def __init__(self, payload):
             self.payload = payload
 
+        def raise_for_status(self):
+            pass
+
         def json(self):
             return self.payload
 
@@ -346,6 +352,9 @@ def test_query_openalex_rejects_non_article_work_types(monkeypatch):
     requests = []
 
     class Response:
+        def raise_for_status(self):
+            pass
+
         def json(self):
             return {"meta": {"count": 1}, "results": [software_work]}
 

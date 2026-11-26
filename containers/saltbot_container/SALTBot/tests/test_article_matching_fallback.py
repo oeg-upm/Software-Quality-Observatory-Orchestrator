@@ -171,7 +171,7 @@ def test_three_repositories_create_one_openalex_article_and_keep_all_links(monke
         "id": "https://openalex.org/W4416706803",
     }
     monkeypatch.setattr(SALTbotHandler.SALTbotSearcher, "parseTitles", lambda info: ([title], {}, {}))
-    monkeypatch.setattr(SALTbotHandler.SALTbotSearcher, "queryOpenAlex", lambda value: work)
+    monkeypatch.setattr(SALTbotHandler.SALTbotSearcher, "queryOpenAlex", lambda value, openalex_api_key='': work)
     for name in ("getEntitiesByName", "getEntitiesByDoi", "getEntitiesByOpenAlexId"):
         monkeypatch.setattr(SALTbotHandler, name, lambda *args: {})
 
@@ -231,7 +231,7 @@ def test_ambiguous_wikidata_titles_fall_back_to_openalex_doi(monkeypatch):
             ),
         }
 
-    def fake_query_openalex_by_doi(value):
+    def fake_query_openalex_by_doi(value, openalex_api_key=''):
         openalex_doi_searches.append(value)
         return openalex_work
 
@@ -258,7 +258,7 @@ def test_ambiguous_wikidata_titles_fall_back_to_openalex_doi(monkeypatch):
     monkeypatch.setattr(
         SALTbotHandler.SALTbotSearcher,
         "queryOpenAlex",
-        lambda title: None,
+        lambda title, openalex_api_key='': None,
     )
     monkeypatch.setattr(SALTbotHandler, "getRelatedEntities", lambda *args: [])
     monkeypatch.setattr(
@@ -325,7 +325,7 @@ def test_multiple_exact_titles_fall_back_to_openalex_in_auto_mode(monkeypatch):
     monkeypatch.setattr(
         SALTbotHandler.SALTbotSearcher,
         "queryOpenAlex",
-        lambda value: openalex_work,
+        lambda value, openalex_api_key='': openalex_work,
     )
     monkeypatch.setattr(SALTbotHandler, "getRelatedEntities", lambda *args: [])
 
@@ -403,12 +403,12 @@ def test_openalex_new_doi_is_checked_in_wikidata_before_creation(monkeypatch):
     monkeypatch.setattr(
         SALTbotHandler.SALTbotSearcher,
         "queryOpenAlexByDoi",
-        lambda doi: None,
+        lambda doi, openalex_api_key='': None,
     )
     monkeypatch.setattr(
         SALTbotHandler.SALTbotSearcher,
         "queryOpenAlex",
-        lambda value: openalex_work,
+        lambda value, openalex_api_key='': openalex_work,
     )
     monkeypatch.setattr(SALTbotHandler, "getRelatedEntities", lambda *args: [])
     monkeypatch.setattr(
@@ -435,6 +435,43 @@ def test_openalex_new_doi_is_checked_in_wikidata_before_creation(monkeypatch):
     assert operations == ["operation"]
     assert doi_searches == [openalex_doi]
     assert captured["article_links"] == {"QARTICLE": []}
+
+
+@pytest.mark.parametrize('existing_url,citation_title,citation_type,expected_url', [
+    (None, 'Selected PAPER!', 'conference-paper', 'https://ceur-ws.org/Vol-3846/paper12.pdf'),
+    ('https://example.org/existing.pdf', 'Selected paper', 'conference-paper', 'https://example.org/existing.pdf'),
+    (None, 'Different paper', 'conference-paper', None),
+    (None, 'Selected paper', 'software', None),
+])
+def test_openalex_article_uses_only_matching_scientific_citation_url(
+        monkeypatch, existing_url, citation_title, citation_type, expected_url):
+    title = 'Selected paper'
+    work = {'id': 'https://openalex.org/W7239636175', 'display_name': title,
+            'doi': 'https://doi.org/10.1234/example', 'type': 'article'}
+    if existing_url:
+        work['url'] = existing_url
+    info = {'name': [{'result': {'value': 'software'}}],
+            'code_repository': [{'result': {'value': 'https://github.com/example/software'}}],
+            'citation': [{'technique': 'file_exploration', 'result': {'value': (
+                f'preferred-citation:\n  type: {citation_type}\n  title: {citation_title}\n'
+                '  url: https://ceur-ws.org/Vol-3846/paper12.pdf\n')}}]}
+    monkeypatch.setattr(SALTbotHandler.SALTbotSearcher, 'parseTitles', lambda info: ([title], {}, {}))
+    monkeypatch.setattr(SALTbotHandler.SALTbotSearcher, 'queryOpenAlex', lambda *args, **kwargs: work.copy())
+    for method in ('getEntitiesByName', 'getEntitiesByRepositoryUrl', 'getEntitiesByArticleUrl',
+                   'getEntitiesByDoi', 'getEntitiesByOpenAlexId'):
+        monkeypatch.setattr(SALTbotHandler, method, lambda *args: {})
+    monkeypatch.setattr('requests.sessions.Session.request',
+                        lambda *args, **kwargs: pytest.fail('Unexpected network request'))
+    nodes = {**SALTbotHandler.DEFAULT_WIKIDATA_OPTIONAL_NODES, 'licenses': {'MIT': 'Q334661'}}
+    operations = SALTbotHandler.SALTbot(
+        None, info, SALTbotHandler.DEFAULT_WIKIDATA_MANDATORY_NODES, nodes, True, {},
+        configData={}, citation_article_registry={})
+    claims = [value for kind, value in operations if kind == 'statement']
+    assert [v['o'] for v in claims if v['p'] == 'P953'] == ([expected_url] if expected_url else [])
+    assert any(v['p'] == 'P10283' and v['o'] == 'W7239636175' for v in claims)
+    assert any(v['p'] == 'P356' and v['o'] == '10.1234/example' for v in claims)
+    assert any(v['p'] == 'P1476' and SALTbotHandler.normalizeArticleTitle(v['o']) ==
+               SALTbotHandler.normalizeArticleTitle(title) for v in claims)
 
 
 def test_openalex_title_fallback_rejects_unrelated_title(monkeypatch):
@@ -465,7 +502,7 @@ def test_openalex_title_fallback_rejects_unrelated_title(monkeypatch):
     monkeypatch.setattr(
         SALTbotHandler.SALTbotSearcher,
         "queryOpenAlex",
-        lambda value: unrelated_work,
+        lambda value, openalex_api_key='': unrelated_work,
     )
     monkeypatch.setattr(
         SALTbotHandler.SALTbotStatementDefiner,
@@ -525,7 +562,7 @@ def test_openalex_match_is_checked_by_openalex_id_before_creation(monkeypatch):
     monkeypatch.setattr(
         SALTbotHandler.SALTbotSearcher,
         "queryOpenAlex",
-        lambda value: openalex_work,
+        lambda value, openalex_api_key='': openalex_work,
     )
 
     def fake_get_entities_by_openalex_id(openalex_id, *args):

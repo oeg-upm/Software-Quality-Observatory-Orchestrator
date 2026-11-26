@@ -50,6 +50,10 @@ DEFAULT_WIKIDATA_OPTIONAL_NODES = {
     'DOI': 'P356',
     'full work available at URL': 'P953',
     'OpenAlex ID': 'P10283',
+    'title': 'P1476',
+    'author': 'P50',
+    'author name string': 'P2093',
+    'series ordinal': 'P1545',
     'free software': 'Q341'
 }
 
@@ -504,15 +508,16 @@ def SALTbot(wbi, info, man_nodes, opt_nodes, auto, results, fallback_search=Fals
 
 
     if articles == {}:
+        openalex_api_key = (configData or {}).get('OPENALEX_API_KEY', '')
         for doi in DOIs:
-            openAlex = SALTbotSearcher.queryOpenAlexByDoi(doi)
+            openAlex = SALTbotSearcher.queryOpenAlexByDoi(doi, openalex_api_key=openalex_api_key)
             if openAlex is not None:
                 openAlexMatchMethod = 'DOI'
                 break
 
         if openAlex is None:
             for title in parsedTitles:
-                candidate = SALTbotSearcher.queryOpenAlex(title)
+                candidate = SALTbotSearcher.queryOpenAlex(title, openalex_api_key=openalex_api_key)
                 if candidate is not None and openAlexTitleMatches(
                     candidate,
                     parsedTitles
@@ -564,6 +569,12 @@ def SALTbot(wbi, info, man_nodes, opt_nodes, auto, results, fallback_search=Fals
 
             if len(articles) == 1:
                 article_auto = [True, 'OpenAlex ID match']
+
+    if articles == {} and openAlex is not None and not openAlex.get('url'):
+        for citation in citationCandidates:
+            if openAlexTitleMatches(openAlex, [citation['title']]):
+                openAlex = {**openAlex, 'url': citation['url']}
+                break
 
     if articles == {} and openAlex is not None and citation_article_registry is not None:
         openAlex = selectOpenAlexArticle(info, openAlex, citation_article_registry)
@@ -628,6 +639,8 @@ def SALTbot(wbi, info, man_nodes, opt_nodes, auto, results, fallback_search=Fals
         print("NO SCIENTIFIC ARTICLE FOUND IN WIKIBASE OR OPENALEX. SALTBOT WILL NOT INTRODUCE SOFTWARE-ONLY STATEMENTS")
         return []
     operation_list = SALTbotStatementDefiner.defineOperations(info, article_links, software_links,[auto, article_auto, software_auto], man_nodes, opt_nodes, results, openAlex, configData, wbi, citationArticle)
+    if not operation_list:
+        print('NO NEW OPERATIONS WERE GENERATED.')
     
         
     return operation_list

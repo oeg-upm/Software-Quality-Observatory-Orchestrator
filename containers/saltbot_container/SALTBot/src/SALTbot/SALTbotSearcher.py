@@ -2,6 +2,7 @@ import bibtexparser
 import yaml
 from yaml.loader import SafeLoader
 from urllib.parse import urlparse
+from email.utils import parsedate_to_datetime
 
 from wikibaseintegrator import wbi_login
 #from wikiintegrator import wbi_core
@@ -14,6 +15,7 @@ import time
 import json
 import re
 import requests
+import sys
 import click
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
@@ -27,6 +29,9 @@ OPENALEX_ARTICLE_TYPES = {
     "review",
     "software-paper",
 }
+
+OPENALEX_MAX_RETRIES = 3
+OPENALEX_RETRY_DELAY = 5
 
 SCIENTIFIC_CITATION_TYPES = {
     "article",
@@ -78,6 +83,8 @@ def _parseBibEntry(info):
         "title": _bibtexValue(entry.get("title")),
         "doi": _bibtexValue(entry.get("doi")),
         "url": _bibtexValue(entry.get("url")),
+        "author": _bibtexValue(entry.get("author")),
+        "language": _bibtexValue(entry.get("langid") or entry.get("language")),
     }
 
 
@@ -93,35 +100,86 @@ def parseBib(info):
         return None, None
 
 
-def _queryOpenAlexArticle(query_filter, error_message):
+def _queryOpenAlexArticle(query_filter, error_message, openalex_api_key='', work_id=None):
+    request_options = {'timeout': 60}
+    api_key = (openalex_api_key or '').strip()
+    if api_key:
+        request_options['headers'] = {'Authorization': f'Bearer {api_key}'}
     for corpus in ("core", "all"):
-        try:
-            response = requests.get(
-                'https://api.openalex.org/works',
-                params={'filter': query_filter, 'corpus': corpus},
-                timeout=60
-            )
-            result = response.json()
-        except (requests.RequestException, ValueError) as e:
-            print(error_message, e)
-            return None
+        for attempt in range(OPENALEX_MAX_RETRIES + 1):
+            try:
+                response = requests.get(
+                    'https://api.openalex.org/works' + (f'/{work_id}' if work_id else ''),
+                    params={'corpus': corpus} if work_id else {'filter': query_filter, 'corpus': corpus},
+                    **request_options
+                )
+                if work_id and response.status_code == 404 and corpus == 'core':
+                    result = {}
+                    break
+                response.raise_for_status()
+                result = response.json()
+            except (requests.RequestException, ValueError) as error:
+                error_response = getattr(error, 'response', None)
+                status = error_response.status_code if error_response is not None else None
+                retryable = (
+                    isinstance(error, (requests.ConnectionError, requests.Timeout))
+                    or status in (429, 502, 503, 504)
+                )
+                reason = f'{type(error).__name__}: {error}'
+                if error_response is not None:
+                    reason += f' | {error_response.text[:500]}'
+                if not retryable or attempt == OPENALEX_MAX_RETRIES:
+                    print(error_message, reason, f'(corpus={corpus})',
+                          file=sys.stderr, flush=True)
+                    raise
 
-        for work in result.get('results', []):
+                delay = OPENALEX_RETRY_DELAY * (2 ** attempt)
+                if error_response is not None:
+                    header = error_response.headers.get('Retry-After')
+                    try:
+                        try:
+                            server_delay = float(header)
+                        except ValueError:
+                            server_delay = parsedate_to_datetime(header).timestamp() - time.time()
+                        if 0 < server_delay < float('inf'):
+                            delay = server_delay
+                    except (TypeError, ValueError, OverflowError):
+                        pass
+                print(
+                    f'SALTbot OpenAlex {reason}: retry {attempt + 1}/'
+                    f'{OPENALEX_MAX_RETRIES} in {delay}s (corpus={corpus})',
+                    file=sys.stderr, flush=True,
+                )
+                time.sleep(delay)
+                continue
+            break
+
+        for work in [result] if work_id else result.get('results', []):
             if work.get('type') in OPENALEX_ARTICLE_TYPES:
+                if not work_id and work.get('is_authors_truncated') and work.get('id'):
+                    return queryOpenAlexById(work['id'], openalex_api_key=openalex_api_key)
                 return work
 
     return None
 
 
-def queryOpenAlex(article):
+def queryOpenAlexById(work_id, openalex_api_key=''):
+    work_id = str(work_id).rstrip('/').rsplit('/', 1)[-1]
+    if not re.fullmatch(r'W[0-9]+', work_id):
+        raise ValueError('Invalid OpenAlex work ID')
+    return _queryOpenAlexArticle(None, 'OpenAlex work lookup failed:', openalex_api_key, work_id=work_id)
+
+
+def queryOpenAlex(article, openalex_api_key=''):
     article = article.replace(",", "")
     return _queryOpenAlexArticle(
         'title.search:' + article,
-        'OpenAlex query failed:'
+        'OpenAlex query failed:',
+        openalex_api_key=openalex_api_key,
     )
 
 
-def queryOpenAlexByDoi(doi):
+def queryOpenAlexByDoi(doi, openalex_api_key=''):
     doi = doi.strip()
     if doi.lower().startswith('doi:'):
         doi = doi[4:]
@@ -130,7 +188,8 @@ def queryOpenAlexByDoi(doi):
 
     return _queryOpenAlexArticle(
         'doi:' + doi,
-        'OpenAlex DOI query failed:'
+        'OpenAlex DOI query failed:',
+        openalex_api_key=openalex_api_key,
     )
 
 

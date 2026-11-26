@@ -225,11 +225,6 @@ def buildFinalOperationList(operations_dir):
 	return FINAL_OPERATION_LIST, operation_files
 
 
-def clearOperationFiles(operation_files):
-	for operation_file in operation_files:
-		operation_file.unlink()
-
-
 def operationFileHasContent(operation_file):
 	return Path(operation_file).read_text(encoding="utf-8").strip() != ""
 
@@ -264,6 +259,10 @@ def configure(auto):
 	config['USER'] = click.prompt("Wikibase user", default = "")
 	config['PASSWORD'] = click.prompt("Wikibase Password", default = "")
 	config['GITHUB_API_TOKEN'] = click.prompt("GitHub API Token", default = "", hide_input=True)
+	config['OPENALEX_API_KEY'] = click.prompt(
+		"OpenAlex API Key", default=os.getenv('OPENALEX_API_KEY', ''),
+		hide_input=True, show_default=False,
+	)
 	if(auto):
 		click.echo('Introduce the target wikibase data. If left blank, it will default to target Wikidata')
 		config['MEDIAWIKI_API_URL'] = click.prompt("MEDIAWIKI_API_URL", default = "")
@@ -287,8 +286,7 @@ def update(file, operations_dir, auto):
 	"""Update Statements provided by file into target Wikibase"""
 
 	if (file is None and operations_dir is None) or (file is not None and operations_dir is not None):
-		click.echo('SALTbot Error: provide exactly one of --file or --operations-dir')
-		return
+		raise click.ClickException('Provide exactly one of --file or --operations-dir')
 
 	if operations_dir:
 		file, operation_files = buildFinalOperationList(operations_dir)
@@ -301,18 +299,19 @@ def update(file, operations_dir, auto):
 	if not operationFileHasContent(file):
 		click.echo('SALTbot did not find operations to update')
 
-		if operations_dir:
-			clearOperationFiles(operation_files)
+		return
 
+	with open(file, 'r', encoding='utf-8-sig') as operation_file:
+		operation_list = SALTbotUpdater.parseOperations(operation_file)
+	if not operation_list:
+		click.echo('SALTbot did not find operations to update')
 		return
 
 	try:
-		stream = open('config.yaml', 'r')   
-		config_data = yaml.load(stream, Loader = SafeLoader)
+		with open('config.yaml', 'r') as stream:
+			config_data = yaml.load(stream, Loader = SafeLoader)
 	except Exception as e:
-		print(e)
-		click.echo('SALTbot Error: Configuration file not found')
-		return
+		raise click.ClickException(f'Could not load configuration: {type(e).__name__}: {e}') from e
 
 	user = config_data['USER']
 	passw = config_data['PASSWORD']
@@ -330,14 +329,12 @@ def update(file, operations_dir, auto):
 
 	wbi_config['USER_AGENT'] = 'SALTbot/1.0 (https://www.wikidata.org/wiki/User:'+user+')'
 	
-	wbi=WikibaseIntegrator(login=wbi_login.Login(user=user, password=passw))
-
-	with open(file, 'r', encoding='utf-8') as operation_list:
-		#operation_list = json.loads(operations)
-		SALTbotUpdater.executeOperations(operation_list,auto,wbi)
-
-	if operations_dir:
-		clearOperationFiles(operation_files)
+	try:
+		login = SALTbotUpdater.runRequest('LOGIN', user, wbi_login.Login, user=user, password=passw)
+	except Exception as e:
+		raise click.ClickException(f'Login failed: {type(e).__name__}: {e}') from e
+	wbi = WikibaseIntegrator(login=login)
+	SALTbotUpdater.executeOperations(operation_list, auto, wbi)
 
 
 #@click.command(help='Run SALTbot')
@@ -355,6 +352,10 @@ def describe(jsonfile, url, urlfile, jsondir, auto,  output, output_dir, fallbac
 	"""Creates the statements to link software and articles"""
 	
 	try:
+		if not os.getenv('LLM_MODEL', '').strip():
+			print('LLM_MODEL environment variable is not set. Using default fallback for descriptions.')
+		else:
+			print(f'LLM_MODEL is set to {os.getenv("LLM_MODEL")}. Using LLM for descriptions.')
 		stream = open('config.yaml', 'r')   
 		config_data = yaml.load(stream, Loader = SafeLoader)
 		#print(config_data)

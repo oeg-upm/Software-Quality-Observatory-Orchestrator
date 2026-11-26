@@ -26,8 +26,8 @@ def test_sparql_queries_use_five_minute_timeout():
 	assert SPARQLQuerys.DEFAULT_TIMEOUT == 300
 
 
-def test_sparql_queries_wait_three_seconds_between_requests():
-	assert SPARQLQuerys.SPARQL_REQUEST_INTERVAL == 3.0
+def test_sparql_queries_wait_five_seconds_between_requests():
+	assert SPARQLQuerys.SPARQL_REQUEST_INTERVAL == 5.0
 
 
 def test_sparql_rate_limit_waits_with_simple_sleep(monkeypatch):
@@ -128,7 +128,7 @@ def test_execute_select_retries_gateway_errors_after_rate_limit(monkeypatch, sta
 	monkeypatch.setattr(SPARQLQuerys.requests, "get", fake_get)
 
 	assert SPARQLQuerys.executeSelect(query) == []
-	assert events == [3.0, "request", 5, 3.0, "request"]
+	assert events == [5.0, "request", 5, 5.0, "request"]
 	assert len(requests) == 2
 	assert requests[0] == requests[1]
 	assert requests[0][1]["params"]["query"] == query
@@ -150,7 +150,7 @@ def test_execute_select_stops_after_three_gateway_retries(monkeypatch, status_co
 		SPARQLQuerys.executeSelect("SELECT * WHERE {}")
 
 	assert len(requests) == 4
-	assert sleeps == [3.0, 5, 3.0, 10, 3.0, 20, 3.0]
+	assert sleeps == [5.0, 5, 5.0, 10, 5.0, 20, 5.0]
 
 
 def test_execute_select_gateway_retry_prefers_retry_after(monkeypatch):
@@ -160,7 +160,7 @@ def test_execute_select_gateway_retry_prefers_retry_after(monkeypatch):
 	monkeypatch.setattr(SPARQLQuerys.requests, "get", lambda *args, **kwargs: responses.pop(0))
 
 	assert SPARQLQuerys.executeSelect("SELECT * WHERE {}") == []
-	assert sleeps == [3.0, 7.0, 3.0]
+	assert sleeps == [5.0, 7.0, 5.0]
 
 
 def test_execute_select_gateway_retry_ignores_invalid_retry_after(monkeypatch):
@@ -170,7 +170,7 @@ def test_execute_select_gateway_retry_ignores_invalid_retry_after(monkeypatch):
 	monkeypatch.setattr(SPARQLQuerys.requests, "get", lambda *args, **kwargs: responses.pop(0))
 
 	assert SPARQLQuerys.executeSelect("SELECT * WHERE {}") == []
-	assert sleeps == [3.0, 5, 3.0]
+	assert sleeps == [5.0, 5, 5.0]
 
 
 def test_execute_select_gateway_and_retry_after_share_retry_limit(monkeypatch):
@@ -188,7 +188,7 @@ def test_execute_select_gateway_and_retry_after_share_retry_limit(monkeypatch):
 		SPARQLQuerys.executeSelect("SELECT * WHERE {}")
 
 	assert responses == []
-	assert sleeps == [3.0, 5, 3.0, 7.0, 3.0, 20, 3.0]
+	assert sleeps == [5.0, 5, 5.0, 7.0, 5.0, 20, 5.0]
 
 
 def test_execute_select_does_not_retry_bad_request_without_retry_after(monkeypatch):
@@ -206,4 +206,4 @@ def test_execute_select_does_not_retry_bad_request_without_retry_after(monkeypat
 		SPARQLQuerys.executeSelect("SELECT * WHERE {}")
 
 	assert len(requests) == 1
-	assert sleeps == [3.0]
+	assert sleeps == [5.0]

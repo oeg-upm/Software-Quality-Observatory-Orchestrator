@@ -3,20 +3,20 @@
   "nodes": [
     {
       "parameters": {
-        "command": "=mkdir -p /root/.n8n-files/saltbot/{{ $node[\"Trigger\"].json.project }}"
+        "command": "=set -e\n\nOUT=\"/root/.n8n-files/saltbot/{{ $node[\"Trigger\"].json.project }}\"\n\nmkdir -p \"$OUT\"\nrm -f \"$OUT/status.json\""
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -2176,
-        -112
+        -2240,
+        -256
       ],
       "id": "aaa7a742-2d53-4734-bddf-f4bdf7800dc3",
       "name": "Create saltbot outputs dir"
     },
     {
       "parameters": {
-        "command": "=docker run -d --rm \\\n--network containers_net \\\n-v \"{{ $env.OUTPUTS }}:/app/outputs\" \\\n-e WIKIBASE_USER={{ $env.WIKIBASE_USER }} \\\n-e WIKIBASE_PASSWORD={{ $env.WIKIBASE_PASSWORD }} \\\n-e GITHUB_API_TOKEN={{ $env.GITHUB_API_TOKEN }} \\\nsaltbot-heavy:latest \\\nsaltbot describe \\\n-a \\\n--jsondir /app/outputs/saltbot/{{ $node[\"Trigger\"].json.project }}/metadata-selected \\\n--output-dir /app/outputs/saltbot/{{ $node[\"Trigger\"].json.project }}"
+        "command": "=docker run -d --rm \\\n--network containers_net \\\n-v \"{{ $env.OUTPUTS }}:/app/outputs\" \\\n-e WIKIBASE_USER={{ $env.WIKIBASE_USER }} \\\n-e WIKIBASE_PASSWORD={{ $env.WIKIBASE_PASSWORD }} \\\n-e GITHUB_API_TOKEN={{ $env.GITHUB_API_TOKEN }} \\\n-e OPENALEX_API_KEY=\"{{ $env.OPENALEX_API_KEY }}\" \\\n-e LLM_MODEL=\"{{ $env.LLM_MODEL }}\" \\\nsaltbot-heavy:latest \\\nsaltbot describe \\\n-a \\\n--jsondir /app/outputs/saltbot/{{ $node[\"Trigger\"].json.project }}/metadata-selected \\\n--output-dir /app/outputs/saltbot/{{ $node[\"Trigger\"].json.project }}"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -317,16 +317,44 @@
     {
       "parameters": {
         "executeOnce": false,
-        "command": "=set -e\n\nSRC=\"/root/.n8n-files/soca/{{ $node[\"Trigger\"].json.project }}/metadata\"\nDST=\"/root/.n8n-files/saltbot/{{ $node[\"Trigger\"].json.project }}/metadata-selected\"\n\nrm -rf \"$DST\"\nmkdir -p \"$DST\"\n\n{{ $node[\"Trigger\"].json.repos_url.map(url => {\n  const clean = url.replace('https://github.com/', '').replace(/\\/$/, '');\n  const [owner, repo] = clean.split('/');\nconst repoFile = repo.replace(/\\./g, '-');\nreturn `find \"$SRC\" -maxdepth 1 -type f -name '${owner}_${repoFile}_*.json' | sort | tail -n 1 | while read f; do cp \"$f\" \"$DST/\"; done`;\n}).join('\\n') }}\n\ncount=$(find \"$DST\" -maxdepth 1 -type f -name '*.json' | wc -l | tr -d ' ')\n\necho \"{\\\"selected_metadata_count\\\":$count,\\\"expected_repos\\\":{{ $node[\"Trigger\"].json.repos_url.length }},\\\"metadata_dir\\\":\\\"$DST\\\"}\"\n\ntest \"$count\" -eq \"{{ $node[\"Trigger\"].json.repos_url.length }}\""
+        "command": "=set -e\n\nSRC=\"/root/.n8n-files/soca/{{ $node[\"Trigger\"].json.project }}/metadata\"\nDST=\"/root/.n8n-files/saltbot/{{ $node[\"Trigger\"].json.project }}/metadata-selected\"\n\nrm -rf \"$DST\"\nmkdir -p \"$DST\"\n\n{{ $node[\"Filter repos\"].json.repos_url.map(url => {\n  const clean = url.replace('https://github.com/', '').replace(/\\/$/, '');\n  const [owner, repo] = clean.split('/');\nconst repoFile = repo.replace(/\\./g, '-');\nreturn `find \"$SRC\" -maxdepth 1 -type f -name '${owner}_${repoFile}_*.json' | sort | tail -n 1 | while read f; do cp \"$f\" \"$DST/\"; done`;\n}).join('\\n') }}\n\ncount=$(find \"$DST\" -maxdepth 1 -type f -name '*.json' | wc -l | tr -d ' ')\n\necho \"{\\\"selected_metadata_count\\\":$count,\\\"expected_repos\\\":{{ $node[\"Filter repos\"].json.repos_url.length }},\\\"metadata_dir\\\":\\\"$DST\\\"}\"\n\ntest \"$count\" -eq \"{{ $node[\"Filter repos\"].json.repos_url.length }}\""
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        -2000,
-        -112
+        -2064,
+        -256
       ],
       "id": "29f839a8-486b-45d0-b2e4-186676159065",
       "name": "Prepare SALTBot metadata dir"
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalize = url =>\n  url.trim().replace(/\\/+$/, '').replace(/\\.git$/i, '').toLowerCase();\n\n// Edita esta lista para excluir repositorios.\nconst excluded = new Set([\n  'https://github.com/oeg-upm/TINTOlib-Crash_Course',\n  'https://github.com/oeg-upm/TINTOlib-Documentation',\n  'https://github.com/oeg-upm/oeg-software-graph',\n].map(normalize));\n\nconst data = $input.first().json;\n\nconst repos = (data.repos_url ?? []).filter(\n  url => !excluded.has(normalize(url))\n);\n\nreturn [{\n  json: {\n    ...data,\n    repos_url: repos,\n    repo_count: repos.length,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2448,
+        -112
+      ],
+      "id": "09a93c89-97fe-4306-99d1-4f131d76df2c",
+      "name": "Filter repos"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "\n{\"repos_url\":[\"https://github.com/dgarijo/Widoco\",\"https://github.com/lincedu/lincedu.github.io\",\"https://github.com/lincedu/modelos-ia\",\"https://github.com/morph-kgc/3xtudio\",\"https://github.com/morph-kgc/.github\",\"https://github.com/morph-kgc/morph-kgc\",\"https://github.com/morph-kgc/morph-kgc-docs\",\"https://github.com/morph-kgc/morph-kgc-helm\",\"https://github.com/oeg-upm/201612-clarityhackathon-upm\",\"https://github.com/oeg-upm/agora-docker\",\"https://github.com/oeg-upm/agora-gw\",\"https://github.com/oeg-upm/agora-ontos\",\"https://github.com/oeg-upm/agora-py\",\"https://github.com/oeg-upm/agora-wot\",\"https://github.com/oeg-upm/AI4EU_raidologist\",\"https://github.com/oeg-upm/ai4labour\",\"https://github.com/oeg-upm/ainn-request\",\"https://github.com/oeg-upm/ainn-userm\",\"https://github.com/oeg-upm/ainn-website\",\"https://github.com/oeg-upm/Articulos-HTML-Enlazado\",\"https://github.com/oeg-upm/astrea\",\"https://github.com/oeg-upm/AstreaRun\",\"https://github.com/oeg-upm/astrea-web\",\"https://github.com/oeg-upm/AttentionRankLib\",\"https://github.com/oeg-upm/AURORAL_Conformance\",\"https://github.com/oeg-upm/AURORAL_IA_Service\",\"https://github.com/oeg-upm/auroral-adapters-ontology\",\"https://github.com/oeg-upm/auroral-biomass-ontology\",\"https://github.com/oeg-upm/auroral-Car-booking-ontology\",\"https://github.com/oeg-upm/auroral-cellTower-ontology\",\"https://github.com/oeg-upm/auroral-core-ontology\",\"https://github.com/oeg-upm/auroral-cow-ontology\",\"https://github.com/oeg-upm/auroral-energy-ontology\",\"https://github.com/oeg-upm/auroral-marketplace-ontology\",\"https://github.com/oeg-upm/auroral-mobility-Ontology\",\"https://github.com/oeg-upm/auroral-privacy-ontology\",\"https://github.com/oeg-upm/auroral-shipmentBiomass-ontology\",\"https://github.com/oeg-upm/auroral-tourism-ontology\",\"https://github.com/oeg-upm/auroral-VehicleCharger-ontology\",\"https://github.com/oeg-upm/auroral-website\",\"https://github.com/oeg-upm/auroral-website-def\",\"https://github.com/oeg-upm/BenchmarkingML4KGEmodelcards\",\"https://github.com/oeg-upm/beto-covid-sentiment-analysis\",\"https://github.com/oeg-upm/bidirectional_paper_repository_scripts\",\"https://github.com/oeg-upm/bimerr_materials_table\",\"https://github.com/oeg-upm/bimerr-annotation-objects\",\"https://github.com/oeg-upm/bimerr-building\",\"https://github.com/oeg-upm/bimerr-core\",\"https://github.com/oeg-upm/bimerr-epw\",\"https://github.com/oeg-upm/bimerr-health-security\",\"https://github.com/oeg-upm/bimerr-information-objects\",\"https://github.com/oeg-upm/BIMERR-KGG\",\"https://github.com/oeg-upm/bimerr-kpi\",\"https://github.com/oeg-upm/bimerr-material-properties\",\"https://github.com/oeg-upm/bimerr-materials\",\"https://github.com/oeg-upm/bimerr-metadata\",\"https://github.com/oeg-upm/bimerr-obxml\",\"https://github.com/oeg-upm/bimerr-occupant-behavior\",\"https://github.com/oeg-upm/bimerr-renovation-measures\",\"https://github.com/oeg-upm/bimerr-renovation-process\",\"https://github.com/oeg-upm/bimerr-senML\",\"https://github.com/oeg-upm/bimerr-weather\",\"https://github.com/oeg-upm/bimerr-website\",\"https://github.com/oeg-upm/biotea\",\"https://github.com/oeg-upm/BO2DM\",\"https://github.com/oeg-upm/BRATtoBIO\",\"https://github.com/oeg-upm/btn100\",\"https://github.com/oeg-upm/Chowlk\",\"https://github.com/oeg-upm/city4age\",\"https://github.com/oeg-upm/CJCyL\",\"https://github.com/oeg-upm/Cloud_Helio_Adapter\",\"https://github.com/oeg-upm/codemeta-crosswalk-mapping-methodology\",\"https://github.com/oeg-upm/cogito_data_repository\",\"https://github.com/oeg-upm/cogito_final_thing_manager\",\"https://github.com/oeg-upm/cogito_thing_manager_module\",\"https://github.com/oeg-upm/cogito_wrapper_module\",\"https://github.com/oeg-upm/cogito-construction-process-ontology\",\"https://github.com/oeg-upm/cogito-facility-ontology\",\"https://github.com/oeg-upm/cogito-iot-ontology\",\"https://github.com/oeg-upm/cogito-kgg\",\"https://github.com/oeg-upm/cogito-kgg-module\",\"https://github.com/oeg-upm/cogito-platform-ontology\",\"https://github.com/oeg-upm/cogito-quality-ontology\",\"https://github.com/oeg-upm/cogito-relational_ddbb\",\"https://github.com/oeg-upm/cogito-resources-ontology\",\"https://github.com/oeg-upm/cogito-safety-ontology\",\"https://github.com/oeg-upm/cogito-sparql\",\"https://github.com/oeg-upm/cogito-website\",\"https://github.com/oeg-upm/Conceptual-Mapping\",\"https://github.com/oeg-upm/confs-info\",\"https://github.com/oeg-upm/context-builder\",\"https://github.com/oeg-upm/coppola\",\"https://github.com/oeg-upm/coraq\",\"https://github.com/oeg-upm/covid19\",\"https://github.com/oeg-upm/cpv-classifier\",\"https://github.com/oeg-upm/cq4oe-benchmark\",\"https://github.com/oeg-upm/DAOnt\",\"https://github.com/oeg-upm/dataeuropa-analysis\",\"https://github.com/oeg-upm/DBpedia-downloader\",\"https://github.com/oeg-upm/declarative-functions\",\"https://github.com/oeg-upm/DeltaCimApp\",\"https://github.com/oeg-upm/delta-cims-monitor\",\"https://github.com/oeg-upm/delta-ontology\",\"https://github.com/oeg-upm/devops-infra\",\"https://github.com/oeg-upm/Devos\",\"https://github.com/oeg-upm/dia-conversational-agent\",\"https://github.com/oeg-upm/DIoT\",\"https://github.com/oeg-upm/doccano_formatter\",\"https://github.com/oeg-upm/docker-freeling4\",\"https://github.com/oeg-upm/docker-geokettle-x3geo\",\"https://github.com/oeg-upm/DOI-Extractor-OEG\",\"https://github.com/oeg-upm/drugs4covid19\",\"https://github.com/oeg-upm/drugs4covid19-cs\",\"https://github.com/oeg-upm/drugs4covid19-kg\",\"https://github.com/oeg-upm/drugs4covid19-nlp\",\"https://github.com/oeg-upm/drugs4covid19-vocab\",\"https://github.com/oeg-upm/drugs4covid19web\",\"https://github.com/oeg-upm/easysparql\",\"https://github.com/oeg-upm/easytv-annotator\",\"https://github.com/oeg-upm/easytv-annotator-webservice\",\"https://github.com/oeg-upm/easytv-onto\",\"https://github.com/oeg-upm/easytv-resources\",\"https://github.com/oeg-upm/easytv-semantic-annotator\",\"https://github.com/oeg-upm/eelisa-lt-workshop\",\"https://github.com/oeg-upm/epw2csv\",\"https://github.com/oeg-upm/epw2rdf\",\"https://github.com/oeg-upm/epw2rdf-contents\",\"https://github.com/oeg-upm/ERA-SHACL-Benchmark\",\"https://github.com/oeg-upm/esuk\",\"https://github.com/oeg-upm/Ethereum-ontology\",\"https://github.com/oeg-upm/Ethereum-Smart-Contract-Downloader\",\"https://github.com/oeg-upm/eWoT\",\"https://github.com/oeg-upm/fair_ontologies\",\"https://github.com/oeg-upm/fair-by-design-web\",\"https://github.com/oeg-upm/FAIROS_DAMALOS_2023\",\"https://github.com/oeg-upm/FAIR-Research-Object\",\"https://github.com/oeg-upm/FAIR-Research-Object-API\",\"https://github.com/oeg-upm/fcm-cpp\",\"https://github.com/oeg-upm/find_ChatGPT_mentions\",\"https://github.com/oeg-upm/foops_documentation_scripts\",\"https://github.com/oeg-upm/fuzzy-c-means\",\"https://github.com/oeg-upm/GAP-KGE\",\"https://github.com/oeg-upm/GEnI\",\"https://github.com/oeg-upm/geo-agreement\",\"https://github.com/oeg-upm/geo.linkeddata.es-TripleGeoKettle\",\"https://github.com/oeg-upm/github-action-morph-kgc\",\"https://github.com/oeg-upm/github-action-pretty-yarrrml2rml\",\"https://github.com/oeg-upm/github-action-sparql\",\"https://github.com/oeg-upm/GrOwEr\",\"https://github.com/oeg-upm/gtfs-bench\",\"https://github.com/oeg-upm/gtfs-homogeneisation-analysis\",\"https://github.com/oeg-upm/hcommonk-anonymizer\",\"https://github.com/oeg-upm/helio\",\"https://github.com/oeg-upm/helio-framework\",\"https://github.com/oeg-upm/helio-materialiser\",\"https://github.com/oeg-upm/helio-plugins\",\"https://github.com/oeg-upm/helio-publisher\",\"https://github.com/oeg-upm/hola-si-protocol\",\"https://github.com/oeg-upm/hydrontology\",\"https://github.com/oeg-upm/IEBrain\",\"https://github.com/oeg-upm/INELOD-Catalogue\",\"https://github.com/oeg-upm/inesdata-ai-services\",\"https://github.com/oeg-upm/inesdata-map-editor\",\"https://github.com/oeg-upm/inesdata-ml-schema\",\"https://github.com/oeg-upm/inesdata-website\",\"https://github.com/oeg-upm/Instituto-Estudios-Fiscales-ontologias\",\"https://github.com/oeg-upm/ipfs-service\",\"https://github.com/oeg-upm/IPPCP-Ontology\",\"https://github.com/oeg-upm/IVHackathonOpenDataCaceres-UPM\",\"https://github.com/oeg-upm/Jarsomatic\",\"https://github.com/oeg-upm/JSONPath-to-SPARQL\",\"https://github.com/oeg-upm/kehio\",\"https://github.com/oeg-upm/k-flares\",\"https://github.com/oeg-upm/kgc-eval\",\"https://github.com/oeg-upm/kgc-tutorial-iswc2020\",\"https://github.com/oeg-upm/kge-domain\",\"https://github.com/oeg-upm/kg-reconstruction-eval\",\"https://github.com/oeg-upm/kg-scenarios-eval\",\"https://github.com/oeg-upm/LabSensingArduino\",\"https://github.com/oeg-upm/licensius\",\"https://github.com/oeg-upm/LinkedOpenDataINE\",\"https://github.com/oeg-upm/LLD-Search\",\"https://github.com/oeg-upm/llm4oe-slr\",\"https://github.com/oeg-upm/loom-ld\",\"https://github.com/oeg-upm/LOT-resources\",\"https://github.com/oeg-upm/lubm4obda\",\"https://github.com/oeg-upm/LuckyLook\",\"https://github.com/oeg-upm/lynx-py\",\"https://github.com/oeg-upm/map4rdf\",\"https://github.com/oeg-upm/mapeathor\",\"https://github.com/oeg-upm/mappingpedia-contents\",\"https://github.com/oeg-upm/mappingpedia-contents-test\",\"https://github.com/oeg-upm/mappingpedia-engine\",\"https://github.com/oeg-upm/mappingpedia-engine-commons\",\"https://github.com/oeg-upm/mappingpedia-engine-commons-ws\",\"https://github.com/oeg-upm/mappingpedia-engine-datasets\",\"https://github.com/oeg-upm/mappingpedia-engine-datasets-ws\",\"https://github.com/oeg-upm/mappingpedia-engine-executions\",\"https://github.com/oeg-upm/mappingpedia-engine-executions-ws\",\"https://github.com/oeg-upm/mappingpedia-engine-mappings\",\"https://github.com/oeg-upm/mappingpedia-engine-mappings-ws\",\"https://github.com/oeg-upm/mappingpedia-engine-ws\",\"https://github.com/oeg-upm/mappingpedia-userinterface\",\"https://github.com/oeg-upm/maseo\",\"https://github.com/oeg-upm/Massive-ROs-Creator\",\"https://github.com/oeg-upm/mderanklib\",\"https://github.com/oeg-upm/mgds-ids\",\"https://github.com/oeg-upm/MIRROR\",\"https://github.com/oeg-upm/mobileage-platform-example\",\"https://github.com/oeg-upm/mobility\",\"https://github.com/oeg-upm/morph-csv\",\"https://github.com/oeg-upm/morph-gft\",\"https://github.com/oeg-upm/Morph-OME\",\"https://github.com/oeg-upm/morph-rdb\",\"https://github.com/oeg-upm/morph-skyline\",\"https://github.com/oeg-upm/morph-streams\",\"https://github.com/oeg-upm/morph-streams-web\",\"https://github.com/oeg-upm/morph-website\",\"https://github.com/oeg-upm/mustdrifter\",\"https://github.com/oeg-upm/ner4soft\",\"https://github.com/oeg-upm/NEUROGRAPH\",\"https://github.com/oeg-upm/oatapi\",\"https://github.com/oeg-upm/odrl-lib\",\"https://github.com/oeg-upm/oeg-service-status\",\"https://github.com/oeg-upm/oeg-software-graph\",\"https://github.com/oeg-upm/oeg-upm.github.io\",\"https://github.com/oeg-upm/ontologia-ciberseguridad\",\"https://github.com/oeg-upm/ontologia-miUrba\",\"https://github.com/oeg-upm/ontology-BTN100\",\"https://github.com/oeg-upm/ontology-directory\",\"https://github.com/oeg-upm/Ontology-governance-framework\",\"https://github.com/oeg-upm/OntoRipple\",\"https://github.com/oeg-upm/OOPS\",\"https://github.com/oeg-upm/OpenOEG\",\"https://github.com/oeg-upm/OpenRefineExtension_Transformation\",\"https://github.com/oeg-upm/OTALEX-C\",\"https://github.com/oeg-upm/outlinejs\",\"https://github.com/oeg-upm/OWLChangeOntology\",\"https://github.com/oeg-upm/OWL-To-OAS-Specification\",\"https://github.com/oeg-upm/p2mc\",\"https://github.com/oeg-upm/pausa-web\",\"https://github.com/oeg-upm/pcake\",\"https://github.com/oeg-upm/PODIO\",\"https://github.com/oeg-upm/PoliticEsChallenge\",\"https://github.com/oeg-upm/PPool\",\"https://github.com/oeg-upm/PromptRankLib\",\"https://github.com/oeg-upm/pycpulimit\",\"https://github.com/oeg-upm/pytada-hdt-entity\",\"https://github.com/oeg-upm/r2rml-editor\",\"https://github.com/oeg-upm/rag-qa-generator\",\"https://github.com/oeg-upm/rdf-star-generation\",\"https://github.com/oeg-upm/rmlc-statistic\",\"https://github.com/oeg-upm/rmldoc\",\"https://github.com/oeg-upm/ROCrate_enrichment_service\",\"https://github.com/oeg-upm/rsecon26-codemeta\",\"https://github.com/oeg-upm/rsfc\",\"https://github.com/oeg-upm/rsfc-action\",\"https://github.com/oeg-upm/rsfc-service\",\"https://github.com/oeg-upm/S4WATR\",\"https://github.com/oeg-upm/saint-experiments-wp2-wp4\",\"https://github.com/oeg-upm/Sancus\",\"https://github.com/oeg-upm/SancusDemo\",\"https://github.com/oeg-upm/saref4grid\",\"https://github.com/oeg-upm/seed-sensors-oeg\",\"https://github.com/oeg-upm/SendEmailWebApp\",\"https://github.com/oeg-upm/shacl-owl-kcap-2025\",\"https://github.com/oeg-upm/SMART-Protocols\",\"https://github.com/oeg-upm/snap-docs\",\"https://github.com/oeg-upm/soca\",\"https://github.com/oeg-upm/soel-site\",\"https://github.com/oeg-upm/software_benchmark_demo\",\"https://github.com/oeg-upm/software_catalog\",\"https://github.com/oeg-upm/software_classification\",\"https://github.com/oeg-upm/software_mentions_benchmark\",\"https://github.com/oeg-upm/Software-Quality-Observatory-Orchestrator\",\"https://github.com/oeg-upm/solarchem-corpus\",\"https://github.com/oeg-upm/solar-qa\",\"https://github.com/oeg-upm/solar-qa-eval\",\"https://github.com/oeg-upm/solar-qa-ui\",\"https://github.com/oeg-upm/solar-ui\",\"https://github.com/oeg-upm/Solidity-ABI-ontology\",\"https://github.com/oeg-upm/Solidity-ontology\",\"https://github.com/oeg-upm/spanish-termex\",\"https://github.com/oeg-upm/sparql-query-demo\",\"https://github.com/oeg-upm/spgf\",\"https://github.com/oeg-upm/spread-sheet-space-apis\",\"https://github.com/oeg-upm/sprint\",\"https://github.com/oeg-upm/ssn-resource-center\",\"https://github.com/oeg-upm/ssspotter\",\"https://github.com/oeg-upm/subject_column_election\",\"https://github.com/oeg-upm/t5-spanish-news-summarization\",\"https://github.com/oeg-upm/tada-api\",\"https://github.com/oeg-upm/tada-entity\",\"https://github.com/oeg-upm/tada-gam\",\"https://github.com/oeg-upm/tada-hdt-entity\",\"https://github.com/oeg-upm/tada-hdt-entity-experiment\",\"https://github.com/oeg-upm/tada-hdt-numeric\",\"https://github.com/oeg-upm/tada-map-score\",\"https://github.com/oeg-upm/tada-qq\",\"https://github.com/oeg-upm/tada-reduce-combine\",\"https://github.com/oeg-upm/tada-type-graph\",\"https://github.com/oeg-upm/telegram-dataset-builder\",\"https://github.com/oeg-upm/teresia-annotators\",\"https://github.com/oeg-upm/teresia-brat-server\",\"https://github.com/oeg-upm/term2LD\",\"https://github.com/oeg-upm/terminology-extractor\",\"https://github.com/oeg-upm/terminology-extractor-incibe\",\"https://github.com/oeg-upm/terminology-utils\",\"https://github.com/oeg-upm/termlex\",\"https://github.com/oeg-upm/term-rag\",\"https://github.com/oeg-upm/Themis\",\"https://github.com/oeg-upm/things-manager-platform\",\"https://github.com/oeg-upm/TINTO\",\"https://github.com/oeg-upm/TINTOlib\",\"https://github.com/oeg-upm/TINTOlib-Crash_Course\",\"https://github.com/oeg-upm/TINTOlib-Documentation\",\"https://github.com/oeg-upm/TPDL2022_FAIROs\",\"https://github.com/oeg-upm/TPool\",\"https://github.com/oeg-upm/transforming-term-extraction-lib\",\"https://github.com/oeg-upm/transmodel-cq\",\"https://github.com/oeg-upm/transmodel-ontology\",\"https://github.com/oeg-upm/ttla\",\"https://github.com/oeg-upm/vicinity-ontologies\",\"https://github.com/oeg-upm/virc\",\"https://github.com/oeg-upm/virtuoso-triple-store\",\"https://github.com/oeg-upm/vkg-tutorial-eswc2019\",\"https://github.com/oeg-upm/vocab.linkeddata.es\",\"https://github.com/oeg-upm/vocabTest\",\"https://github.com/oeg-upm/vocabUpdates\",\"https://github.com/oeg-upm/WAugNER\",\"https://github.com/oeg-upm/weather1\",\"https://github.com/oeg-upm/webODE\",\"https://github.com/oeg-upm/web-oeg\",\"https://github.com/oeg-upm/website\",\"https://github.com/oeg-upm/websiteFooterLogos\",\"https://github.com/oeg-upm/website-geo\",\"https://github.com/oeg-upm/widaug\",\"https://github.com/oeg-upm/WoT-DT-ontology\",\"https://github.com/oeg-upm/WoT-DT-ontology-v2\",\"https://github.com/oeg-upm/wot-hive\",\"https://github.com/oeg-upm/wot-jtd\",\"https://github.com/oeg-upm/ya2ro\",\"https://github.com/oeg-upm/yarrrml-validation\"],\"repo_count\":343,\"repos_removed\":[],\"removed_count\":0,\"has_changes\":true,\"project\":\"oeg-lincedu-morph-widoco\",\"update_wikidata\":false}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2656,
+        -128
+      ],
+      "id": "a05c44a9-5b72-4ea4-b28d-17b1725191b3",
+      "name": "Trigger"
     },
     {
       "parameters": {
@@ -336,11 +364,11 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.2,
       "position": [
-        -2560,
-        -112
+        -2880,
+        -128
       ],
-      "id": "4035ae6c-2c6b-4937-8e76-04a785d29154",
-      "name": "Trigger"
+      "id": "4be745c6-d9b9-41bb-bf28-5e2a04836fbc",
+      "name": "Trigger1"
     }
   ],
   "pinData": {},
@@ -507,6 +535,11 @@
     },
     "Prepare SALTBot metadata dir": {
       "main": [
+        []
+      ]
+    },
+    "Filter repos": {
+      "main": [
         [
           {
             "node": "saltbot describe",
@@ -520,7 +553,18 @@
       "main": [
         [
           {
-            "node": "Create saltbot outputs dir",
+            "node": "Filter repos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Trigger",
             "type": "main",
             "index": 0
           }
@@ -534,7 +578,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "daf4a1fa-ef20-4f68-a86f-373bfe7f05db",
+  "versionId": "df5e99ca-2a6a-4d96-8825-4bbf60eea490",
   "meta": {
     "instanceId": "6177bb2190c233fe58db666087bf366235934ab541d37ef1876770361a8041d0"
   },

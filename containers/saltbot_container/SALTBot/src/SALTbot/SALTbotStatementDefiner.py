@@ -15,6 +15,8 @@ import click
 from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 
 from . import SPARQLQuerys
+from . import SALTbotBibliography
+from . import llm_requests
 
 def normalizeDoi(value):
     doi = str(value).strip()
@@ -42,9 +44,10 @@ def getDescription(info, fallback):
     for description in descriptions:
         value = description.get('result', {}).get('value')
         if value and str(value).strip():
-            return value
+            value = str(value).strip()
+            return value if len(value) <= 250 else llm_requests.fallback_desc_llm(value, fallback)
 
-    return fallback
+    return fallback[:250]
 
 def createSoftwareOperations(info, man_nodes, opt_nodes, configData, wbi, openAlex=None):
     resultOps = []
@@ -52,8 +55,12 @@ def createSoftwareOperations(info, man_nodes, opt_nodes, configData, wbi, openAl
     #Mandatory properties
     try:
         software_label = info['name'][0]['result']['value']
-        article_label = getArticleLabel(info, openAlex)
-        description = getDescription(info, f'scientific software associated with the article {article_label}')
+        article_data = openAlex or {}
+        article_title = article_data.get('_article_label') or article_data.get('title') or article_data.get('display_name')
+        fallback = f'scientific software associated with the article {article_title}' if article_title else ''
+        if not fallback or len(fallback) > 250:
+            fallback = 'scientific software associated with a research article'
+        description = getDescription(info, fallback)
         resultOps.append(['create',{'LABEL':software_label, 'DESCRIPTION':description}])
         #print('instanceof statement', ['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':instanceOfPnode, 'o':softwareQnode[0]}])
         resultOps.append([
@@ -169,6 +176,7 @@ def createSoftwareOperations(info, man_nodes, opt_nodes, configData, wbi, openAl
     #qualifiers = Qualifiers()
     #resultOps.append(['statement', {'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':man_nodes['described by source'], 'o':articleQnode, 'qualifiers':qualifiers}])
     #print(resultOps)
+    resultOps.extend(SALTbotBibliography.softwareOperations(info['name'][0]['result']['value'], info, opt_nodes))
     return resultOps
 
 def getArticleLabel(info, openAlex):
@@ -198,7 +206,9 @@ def createArticleOperations(info, man_nodes, opt_nodes, openAlex, wbi):
     #resultOps.append(['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':man_nodes['instance of'], 'o':man_nodes['article'], 'qualifiers':None}])
    
     try:
-        description = getDescription(info, f'scientific article associated with the software {software_label}')
+        description = llm_requests.article_desc_llm(
+            SALTbotBibliography.getAbstract(openAlex),
+            f'scientific article associated with the software {software_label}')
         resultOps.append(['create',{'LABEL':article_label, 'DESCRIPTION':description}])
         #print('instanceof statement', ['statement',{'datatype':'Item', 's':info['name'][0]['result']['value'], 'p':instanceOfPnode, 'o':softwareQnode[0]}])
         resultOps.append(['statement',{'datatype':'Item', 's':article_label, 'p':man_nodes['instance of'], 'o':man_nodes['scholarly article'], 'qualifiers':None}])
@@ -218,6 +228,7 @@ def createArticleOperations(info, man_nodes, opt_nodes, openAlex, wbi):
             if prop == 'full work available at URL':
                 if openAlex.get('url'):
                     resultOps.append(['statement',{'datatype':'URL', 's':article_label, 'p':opt_nodes['full work available at URL'], 'o':normalizeUrl(openAlex['url']), 'qualifiers':None}])
+    resultOps.extend(SALTbotBibliography.articleOperations(article_label, info, openAlex, opt_nodes))
     return resultOps
 
 #TODO:change to man_nodes
@@ -288,6 +299,7 @@ def defineOperations(info, article_links, software_links,auto, man_nodes, opt_no
             #SI SELECCIONA OTRO, GUARAR QNODO
             else:
                 qnode_article = map_articles[inp_article]
+                results[info['code_repository'][0]['result']['value']]['article'] = qnode_article
                 #results[info['code_repository'][0]['result']['value']].update({'article':map_articles[inp_article]})
   
     '''            
@@ -364,6 +376,7 @@ def defineOperations(info, article_links, software_links,auto, man_nodes, opt_no
                     operation_list.append(i)
             else:
                 qnode_software = map_softwares[inp_software]
+                results[info['code_repository'][0]['result']['value']]['software'] = qnode_software
     
     #check enlaces
     if qnode_article == None or qnode_software == None:
@@ -450,8 +463,6 @@ def defineOperations(info, article_links, software_links,auto, man_nodes, opt_no
     '''    
     #prnt('results en operations', results)
     #print('operation list en operations', operation_list)
-    if operation_list == []:
-        print('NO NEW OPERATIONS WERE GENERATED.')
     for i in operation_list:
         print(i)
     return operation_list
@@ -477,7 +488,7 @@ def getRelations(operation_list, article_links, software_links, Qnode_article, Q
     if software_article_link == False:
         operation_list.append(['statement', {'datatype':'Item', 's':Qnode_software, 'p':man_nodes['described by source'], 'o':Qnode_article}])
     if article_software_link and software_article_link:
-        print('ARTICLE AND SOFTWARE ARE ALREADY LINKED. NO NEW STATEMENTS NEEDED.')
+        print('ARTICLE AND SOFTWARE ARE ALREADY LINKED. NO NEW LINK STATEMENTS NEEDED.')
 
     results['article-software-link'] = article_software_link
     results['software-article-link'] = software_article_link

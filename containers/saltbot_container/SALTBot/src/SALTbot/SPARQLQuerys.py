@@ -10,7 +10,7 @@ GENERAL_ENDPOINT = 'https://query.wikidata.org/sparql'
 MAIN_ENDPOINT = 'https://query-main.wikidata.org/sparql'
 
 DEFAULT_TIMEOUT = 300
-SPARQL_REQUEST_INTERVAL = 3.0
+SPARQL_REQUEST_INTERVAL = 5.0
 SPARQL_RETRY_AFTER_RETRIES = 3
 SPARQL_GATEWAY_RETRY_DELAY = 5
 SPARQL_HEADERS = {
@@ -159,15 +159,30 @@ def executeSelect(query, endpoint=GENERAL_ENDPOINT, timeout=DEFAULT_TIMEOUT):
     for attempt in range(SPARQL_RETRY_AFTER_RETRIES + 1):
         waitForSparqlRateLimit()
 
-        response = requests.get(
-            endpoint,
-            params={
-                'query': query,
-                'format': 'json'
-            },
-            headers=SPARQL_HEADERS,
-            timeout=timeout
-        )
+        try:
+            response = requests.get(
+                endpoint,
+                params={
+                    'query': query,
+                    'format': 'json'
+                },
+                headers=SPARQL_HEADERS,
+                timeout=timeout
+            )
+        except (requests.ConnectionError, requests.Timeout) as error:
+            reason = f'{type(error).__name__}: {error}'
+            if attempt == SPARQL_RETRY_AFTER_RETRIES:
+                print(f'SALTbot SPARQL retries exhausted ({endpoint}): {reason}',
+                      file=sys.stderr, flush=True)
+                raise
+            delay = SPARQL_GATEWAY_RETRY_DELAY * (2 ** attempt)
+            print(
+                f'SALTbot SPARQL {reason}: retry {attempt + 1}/'
+                f'{SPARQL_RETRY_AFTER_RETRIES} in {delay}s ({endpoint})',
+                file=sys.stderr, flush=True,
+            )
+            time.sleep(delay)
+            continue
 
         if attempt < SPARQL_RETRY_AFTER_RETRIES:
             if waitForSparqlRetryAfter(response):
@@ -333,7 +348,11 @@ def sparql_getOptionalNodes(config_data=None):
         "DOI": None,
         "free software": None,
         "OpenAlex ID": None,
-        "full work available at URL": None
+        "full work available at URL": None,
+        "title": None,
+        "author": None,
+        "author name string": None,
+        "series ordinal": None,
     }
 
     query = """
@@ -352,6 +371,10 @@ def sparql_getOptionalNodes(config_data=None):
         ("free software" "free software" "item")
         ("OpenAlex ID" "OpenAlex ID" "property")
         ("full work available at URL" "full work available at URL" "property")
+        ("title" "title" "property")
+        ("author" "author" "property")
+        ("author name string" "author name string" "property")
+        ("series ordinal" "series ordinal" "property")
       }
 
       ?entity rdfs:label ?label .

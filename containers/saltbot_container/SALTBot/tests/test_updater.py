@@ -49,6 +49,8 @@ def no_network(monkeypatch):
     def blocked(*args, **kwargs):
         raise AssertionError("Network access forbidden in updater tests")
     monkeypatch.setattr("requests.sessions.Session.request", blocked)
+    monkeypatch.setattr(updater, "WIKIDATA_WRITE_INTERVAL", 0, raising=False)
+    monkeypatch.setattr(updater, "_last_wikidata_write", None, raising=False)
 
 
 @pytest.mark.parametrize("datatype,value,prop", [
@@ -222,6 +224,45 @@ def test_wait_messages_have_context_and_filter_is_restored(monkeypatch, caplog):
     assert "retry=1" in caplog.text and "elapsed=5.0s" in caplog.text
     assert "sleeping for 60 seconds" in caplog.text
     assert logger.filters == filters
+
+
+def test_write_requests_are_spaced_but_reads_are_not(monkeypatch, capsys):
+    clock = [100.0]
+    sleeps, calls = [], []
+    monkeypatch.setattr(updater, "WIKIDATA_WRITE_INTERVAL", 15)
+    monkeypatch.setattr(updater.time, "monotonic", lambda: clock[0])
+    def sleep(seconds):
+        sleeps.append(seconds)
+        clock[0] += seconds
+    monkeypatch.setattr(updater.time, "sleep", sleep)
+    def request():
+        calls.append(clock[0])
+    updater.runRequest("CREATE", "First", request)
+    clock[0] += 2
+    updater.runRequest("LOAD", "Q123", request)
+    updater.runRequest("LOGIN", "test-user", request)
+    assert sleeps == []
+    updater.runRequest("SAVE", "Q123", request)
+    clock[0] += 20
+    updater.runRequest("CREATE", "Second", request)
+    assert sleeps == [13]
+    assert calls == [100, 102, 102, 115, 135]
+    assert "13.0s" in capsys.readouterr().out
+
+
+def test_failed_write_also_respects_interval_before_next_attempt(monkeypatch):
+    clock = [100.0]
+    sleeps = []
+    monkeypatch.setattr(updater, "WIKIDATA_WRITE_INTERVAL", 15)
+    monkeypatch.setattr(updater.time, "monotonic", lambda: clock[0])
+    def sleep(seconds):
+        sleeps.append(seconds)
+        clock[0] += seconds
+    monkeypatch.setattr(updater.time, "sleep", sleep)
+    with pytest.raises(RuntimeError):
+        updater.runRequest("CREATE", "First", Mock(side_effect=RuntimeError("write rejected")))
+    updater.runRequest("SAVE", "Q123", lambda: None)
+    assert sleeps == [15]
 
 
 def patch_cli(monkeypatch, wbi):

@@ -12,6 +12,8 @@ from wikibaseintegrator.wbi_enums import ActionIfExists
 
 DATATYPES = {"Item": Item, "URL": URL, "ExternalID": ExternalID,
              "String": String, "MonolingualText": MonolingualText}
+WIKIDATA_WRITE_INTERVAL = 15  # seconds; below the 5 writes/minute limit for new accounts
+_last_wikidata_write = None
 
 
 def entityId(value, created_entities):
@@ -92,7 +94,15 @@ def parseOperations(lines):
 
 
 def runRequest(action, target, request, **kwargs):
-    """Annotate WBI's existing waits without changing its retry policy."""
+    """Space writes and annotate WBI's existing waits without changing its retries."""
+    global _last_wikidata_write
+    if action in ("CREATE", "SAVE") and WIKIDATA_WRITE_INTERVAL > 0:
+        if _last_wikidata_write is not None:
+            remaining = WIKIDATA_WRITE_INTERVAL - (time.monotonic() - _last_wikidata_write)
+            if remaining > 0:
+                click.echo(f"[WAIT {action} {target}] write rate limit: sleeping for {remaining:.1f}s")
+                time.sleep(remaining)
+        _last_wikidata_write = time.monotonic()
     logger = logging.getLogger(wbi_helpers.__name__)
     start, retries = time.monotonic(), 0
 

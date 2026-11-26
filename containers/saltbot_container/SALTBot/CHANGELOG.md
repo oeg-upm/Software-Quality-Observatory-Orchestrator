@@ -51,6 +51,7 @@
 - Now SALTBot generates a diferent operation_list.txt and results.txt for different softwares. with the formats `repoOrg_repoName_operation_list.txt` && `repoOrg_repoName_result.txts` 
 
 ### General
+- Space Wikidata creation and save requests by at least 15 seconds to respect new-account write limits, including failed attempts.
 - Support `MonolingualText`, `String` and typed qualifiers in operation files, keeping legacy item qualifier pairs compatible.
 - Validate update files before login, convert typed claims and qualifiers, and use description fallbacks including the article title when they fit Wikidata's 250-character limit.
 - Report failed/pending operations with nonzero exit status and contextual WBI wait logs; always preserve source operation files.

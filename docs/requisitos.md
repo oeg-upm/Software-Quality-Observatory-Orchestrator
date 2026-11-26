@@ -9,6 +9,8 @@
 
 En Windows, Docker Desktop debe tener activada la integración con WSL si se despliega DashVERSE.
 
+SALTBot utiliza una cuenta con contraseña de bot de Wikidata y, opcionalmente, una clave de OpenAlex. Para generar descripciones con Ollama hace falta descargar el modelo indicado por `LLM_MODEL` y disponer de memoria suficiente para ese modelo y los workers.
+
 ## DashVERSE
 
 DashVERSE 0.3.0 se despliega desde Linux sobre Kubernetes local con Minikube. Todos los comandos de `kubectl`, `minikube`, `tofu`, `ansible-playbook` y `just` deben ejecutarse desde el mismo entorno para compartir el contexto de Kubernetes.
@@ -23,7 +25,7 @@ Requisitos principales:
 - OpenTofu (`tofu`).
 - Ansible (`ansible-playbook`).
 - Just.
-- Python.
+- Python >=3.13 para desarrollo del paquete DashVERSE.
 - curl.
 - jq.
 - base64.
@@ -59,17 +61,19 @@ just check-deps
 - SOCA 0.0.4:
 https://github.com/oeg-upm/soca/releases
 
-- RSFC 0.2.0:
-https://github.com/oeg-upm/rsfc/releases/tag/v0.2.0
+- RSFC 0.2.2:
+https://github.com/oeg-upm/rsfc/releases
 
-- SOMEF 0.11.1:
-https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1
+- SOMEF 0.11.5:
+https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.5
 
 - DASHVERSE 0.3.0: 
 https://github.com/EVERSE-ResearchSoftware/DashVERSE/releases/tag/v0.3.0
 
-- rsmetacheck-bot 0.6.0:
+- rsmetacheck-bot 0.6.2:
 https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases
 
-- RsMetaCheck >=0.3.6:
+- RsMetaCheck >=0.3.8:
 https://github.com/SoftwareUnderstanding/rsmetacheck/releases
+
+- SALTBot y Ollama: enlace de software/artículos y generación local de descripciones.

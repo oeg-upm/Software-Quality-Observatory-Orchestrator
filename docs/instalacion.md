@@ -20,7 +20,7 @@ Copiar `containers/.env.example` como `containers/.env` y completar:
 - `GITHUB_API_TOKEN`: token de GitHub para consultas y publicación de issues.
 - `RABBITMQ_USER` y `RABBITMQ_PASSWORD`.
 - `RATE_LIMIT_RSFC_ENABLED` y `RATE_LIMIT_RESQUI_ENABLED`.
-- `RESQUI_CONF`: nombre de la configuracion RESQUI que se cargara desde `containers/resqui_container/resqui_runner/configurations/`, sin extension `.json`. Por ejemplo, `RESQUI_CONF=complete_no_rsfc_superlinter`.
+- `RESQUI_CONF`: nombre de la configuracion RESQUI que se cargara desde `containers/resqui_container/resqui_runner/configurations/`, sin extension `.json`. Por ejemplo, `RESQUI_CONF=complete_no_rsfc`.
 - `OUTPUTS`: ruta absoluta de `containers/outputs`.
 - `PORTAL_PORT`: puerto de Nginx, `8030` por defecto.
 - `DASHBOARD_ORG_EMBED_ID` id o slug del dashboard global importado en DashVERSE/Superset (por defecto `global`)
@@ -28,6 +28,13 @@ Copiar `containers/.env.example` como `containers/.env` y completar:
       ambos valores corresponden a dashboards por defecto de dashverse
 - `SUPERSET_PUBLIC_DOMAIN`: `http://localhost:8088` en local.
 - `DASHVERSE_JWT`: token generado por la API de DashVERSE.
+- `WIKIBASE_USER` y `WIKIBASE_PASSWORD`: cuenta y contraseña de bot para SALTBot.
+- `OPENALEX_API_KEY`: clave opcional para las consultas de OpenAlex.
+- `LLM_MODEL`: modelo de Ollama, por ejemplo `qwen3.5:4b`.
+
+El workflow pasa `LLM_MODEL` al contenedor de SALTBot. `OLLAMA_HOST` usa `http://ollama:11434` por defecto; en local puede apuntar a `http://localhost:11434`. Ollama resume las descripciones SOMEF largas y los abstracts de OpenAlex, con validación de hasta 250 caracteres y descripción alternativa si falla. Ver [SALTBot](saltbot.md).
+
+Tanto `docker-compose.yml` como `docker-compose.oeg.yml` incluyen `ollama` y `ollama-init`: el inicializador espera al healthcheck de Ollama y descarga el modelo indicado por `LLM_MODEL`, guardado en el volumen persistente `ollama_data`. Esperar a que finalice la descarga antes de ejecutar SALTBot. Ambos montan en n8n el script de backups en `/opt/scripts/backup_outputs.sh` y la carpeta `containers/backups` en `/data/backups`; la variante OEG mantiene `network_mode: host` para n8n.
 
 No se deben guardar tokens reales en Git.
 
@@ -39,8 +46,9 @@ Se pueden usar `scripts/build-docker-images.sh` en WSL/Linux o `scripts/build-do
 docker build -t soca-heavy:latest containers/soca_container
 docker build -t rsfc-heavy:latest containers/rsfc_container
 docker build -t resqui-heavy:latest containers/resqui_container
-docker build -t rsmetacheck-bot:latest integrations/rsmetacheck-bot-0.6.0
+docker build -t rsmetacheck-bot:latest integrations/rsmetacheck-bot
 docker build -t rsmetacheck-bot-conf:latest containers/rsmetacheck-bot_container
+docker build -t saltbot-heavy:latest containers/saltbot_container/SALTBot
 ```
 
 La imagen `rsmetacheck-bot-conf` debe construirse después de `rsmetacheck-bot`, ya que hereda de ella.
@@ -63,6 +71,8 @@ Los workers pueden escalarse según los recursos disponibles. Los logs se consul
 docker compose logs -f worker_soca worker_rsfc worker_resqui
 ```
 
+En OEG usar `docker compose -f docker-compose.oeg.yml up -d`, que mantiene n8n con red host. Antes de ejecutar SALTBot, comprobar la descarga del modelo con `docker logs ollama-init` y `docker exec ollama ollama list`.
+
 ### 5. Importar el workflow
 
 Acceder a `http://localhost:5678` e importar:
@@ -72,9 +82,10 @@ Acceder a `http://localhost:5678` e importar:
 - `rsfc_workflow.json`
 - `resqui_workflow.json`
 - `rsmetacheck-bot_workfow.json`
+- `saltbot_workflow.json`
 - `dashverse_workflow.json`
 
-Revisar los nodos `Call '<subworkflow>'` para que apunten a los workflows importados.
+Revisar los nodos `Call '<subworkflow>'` para que apunten a los workflows importados y los nombres de las expresiones que los referencian, incluidos los posibles sufijos `V2`.
 
 En el nodo `Conf` configurar:
 
@@ -85,11 +96,15 @@ En el nodo `Conf` configurar:
     {"org": "mi-organizacion", "type": "org"}
   ],
   "extra_repositories": [],
-  "launch_issue": false
+  "launch_issue": false,
+  "update_wikidata": false,
+  "linkeddata_tools": "/app/outputs/linkeddata_tools.yml"
 }
 ```
 
 El portal quedará disponible en `http://localhost:8030/portals/<project>/`.
+
+Preparar `containers/outputs/linkeddata_tools.yml` con una lista `tools` de URLs de GitHub. Mantener `launch_issue` y `update_wikidata` a `false` para revisar las salidas antes de publicar issues u operaciones.
 
 ## DashVERSE 0.3.0
 
@@ -142,8 +157,6 @@ Este mandato realiza el despliegue completo:
 - configura los port-forwards;
 - sincroniza el catálogo de indicadores y dimensiones de EVERSE;
 - importa dashboards, charts y datasets en Superset.
-
-```
 
 ### 4. Comprobar servicios
 
@@ -246,11 +259,13 @@ SUPERSET_PUBLIC_DOMAIN=http://localhost:8088
 
 ### 9. Reimportar dashboards o resincronizar catálogo
 
-Reimportar dashboards de Superset:
+Para reimportar los dashboards de Superset o reintentar solo el paso 10 de `just deploy`, ejecuta desde `integrations/DashVERSE`:
 
 ```bash
 just setup-dashboards
 ```
+
+En WSL con el repositorio bajo `/mnt/c`, Ansible puede omitir `ansible.cfg` por los permisos del directorio. `just setup-dashboards` pasa la ruta de los roles de forma explícita para que Ansible encuentre `superset_config`.
 
 Resincronizar indicadores y dimensiones EVERSE:
 

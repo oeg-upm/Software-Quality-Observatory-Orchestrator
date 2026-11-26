@@ -16,6 +16,8 @@ Se comparó el rendimiento del sistema utilizando la configuración de workers c
 
 Estas mediciones corresponden a ejecuciones completas anteriores al filtrado incremental actual; las ejecuciones posteriores pueden procesar solo los repositorios modificados.
 
+No incluyen RESQUI, SALTBot ni la generación de descripciones con Ollama. Para comparar nuevas ejecuciones se deben indicar las versiones, el lote procesado y el modelo utilizado.
+
 Este tiempo secuencial se calculó como el sumatorio de los tiempos individuales de procesamiento de cada repositorio, tanto en la fase de extracción de metadatos (SOCA) como en la fase de evaluación de calidad (RSFC). De este modo, se obtiene una aproximación del tiempo total que habría requerido la ejecución en un escenario completamente secuencial.
 
 La comparación entre ambos enfoques permite evaluar el grado de paralelización alcanzado por el sistema, así como cuantificar la mejora en términos de reducción del tiempo total de ejecución.

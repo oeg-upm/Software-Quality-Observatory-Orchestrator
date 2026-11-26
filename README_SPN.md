@@ -16,6 +16,7 @@ El objetivo del proyecto es diseñar e implementar un sistema reproducible que:
 4. Evalúe la calidad de los metadatos del software y, si se habilita, suba Issues automáticas a GitHub
 5. Prepare la información para su integración en dashboards (DashVERSE) y catálogos (SOCA)
 6. Permita orquestar todo el proceso mediante workflows automatizados
+7. Enlace el software con sus artículos científicos y actualice Wikidata de forma opcional mediante SALTBot
 
 El sistema se basa en la integración y orquestación de herramientas existentes dentro de una arquitectura desacoplada y reproducible.
 
@@ -36,6 +37,8 @@ El sistema se basa en la integración y orquestación de herramientas existentes
 | rate limiters     | Control de peticiones a GitHub para RSFC y RESQUI |
 | Nginx             | Publicación del portal SOCA |
 | rsmetacheck-bot   | Evaluación incremental de metadatos e issues opcionales |
+| SALTBot          | Enlace de software y artículos, con actualización opcional de Wikidata |
+| Ollama           | Generación local de descripciones breves para SALTBot |
 | DashVERSE         | Persistencia y visualización de assessments |
 
 
@@ -57,7 +60,7 @@ Cada herramienta se ejecuta en su propio entorno aislado, garantizando:
 
 ### SOCA
 
-La imagen `soca-heavy` incorpora SOCA 0.0.4 y SOMEF 0.11.2. `soca_runner.main` recibe un proyecto, organizaciones o usuarios de GitHub y repositorios adicionales.
+La imagen `soca-heavy` incorpora SOCA 0.0.4 y SOMEF 0.11.5. `soca_runner.main` recibe un proyecto, organizaciones o usuarios de GitHub y repositorios adicionales.
 
 El runner mantiene `repository-state.json` y separa el inventario en repositorios actualizados y eliminados. Solo publica trabajos para los actualizados; los workers extraen los metadatos en staging y promueven el resultado de forma atómica. Un fallo conserva el resultado anterior y queda reflejado en `status.json`.
 
@@ -71,7 +74,7 @@ Al final, `soca_runner.genportal` combina los metadatos con los resultados de ca
 
 ### RSFC
 
-La imagen `rsfc-heavy` utiliza RSFC 0.2.0 y reutiliza los metadatos SOCA cuando están disponibles. El worker busca el JSON de `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, lo pasa a RSFC con `--metadata` y, si no existe, ejecuta RSFC con el análisis normal del repositorio. El launcher publica los repositorios actualizados en `rsfc_jobs` y elimina las salidas de los repositorios retirados.
+La imagen `rsfc-heavy` utiliza RSFC 0.2.2 y reutiliza los metadatos SOCA cuando están disponibles. El worker busca el JSON de `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, lo pasa a RSFC con `--metadata` y, si no existe, ejecuta RSFC con el análisis normal del repositorio. El launcher publica los repositorios actualizados en `rsfc_jobs` y elimina las salidas de los repositorios retirados.
 
 Cada worker:
 
@@ -93,11 +96,17 @@ RESQUI utiliza el mismo patrón de staging, estado y eliminación de resultados 
 
 ### rsmetacheck-bot
 
-Las imágenes `rsmetacheck-bot:latest` y `rsmetacheck-bot-conf:latest` contienen rsmetacheck-bot 0.6.0 y los recursos NLTK/SOMEF necesarios.
+Las imágenes `rsmetacheck-bot:latest` y `rsmetacheck-bot-conf:latest` contienen rsmetacheck-bot 0.6.2 y los recursos NLTK/SOMEF necesarios.
 
 n8n genera un `config.json` con el inventario completo. El bot localiza la snapshot anterior, compara commits y copia los artefactos de repositorios sin cambios. Los informes se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`. Esta ruta conserva el nombre histórico para que el portal SOCA pueda reutilizar los informes existentes.
 
 `launch_issue` separa el análisis de la publicación: si es `false`, no se llama a `rsmetacheck-bot publish`.
+
+### SALTBot
+
+`saltbot-heavy` procesa los metadatos SOMEF de SOCA, busca artículos en Wikidata u OpenAlex y genera operaciones para enlazarlos con el software. `status.json` permite seguir la ejecución y `structured_operations.json` agrupa las operaciones por repositorio. Un fallo no detiene el resto del lote.
+
+`update_wikidata` controla la publicación. Ollama resume las descripciones largas del software y los abstracts disponibles en OpenAlex, aceptando hasta 250 caracteres. Los filtros, salidas y funcionamiento de `update` se describen en [SALTBot](docs/saltbot.md).
 
 ### DashVERSE y portal
 
@@ -116,7 +125,7 @@ Los identificadores de dashboards y el dominio de Superset se configuran con `DA
 
 ## 4. Workflow modular de n8n
 
-`SQOO_modular_workflow.json` es el único workflow principal. Orquesta, en este orden, `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json` y `dashverse_workflow.json`.
+`SQOO_modular_workflow.json` es el único workflow principal. Orquesta, en este orden, `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json`, `saltbot_workflow.json` y `dashverse_workflow.json`.
 
 El nodo `Conf` define:
 
@@ -124,6 +133,8 @@ El nodo `Conf` define:
 - `organizations`: organizaciones o usuarios de GitHub, indicando `org` y `type`.
 - `extra_repositories`: repositorios adicionales.
 - `launch_issue`: activa o desactiva la publicación de issues.
+- `update_wikidata`: activa o desactiva la actualización de Wikidata con SALTBot.
+- `linkeddata_tools`: YAML con la lista de repositorios del portal linked data.
 
 ### Etapas
 
@@ -132,9 +143,10 @@ El nodo `Conf` define:
 3. Solo los repositorios nuevos o modificados pasan por los workers de SOCA, RSFC y RESQUI. Los retirados se eliminan de sus salidas persistidas.
 4. RSFC y RESQUI guardan resultados por `owner_repo` y notifican el estado del lote mediante `status.json`; los fallos por repositorio quedan registrados en `failed_repos` sin detener el pipeline.
 5. rsmetacheck-bot recibe el inventario completo, reutiliza la snapshot anterior para repositorios sin cambios y publica issues solo si `launch_issue` está activado.
-6. SOCA genera el portal enriquecido, que Nginx publica en `http://localhost:8030/portals/<project>/`.
-7. `If repo updated` llama a DashVERSE solo si existen assessments nuevos; una ejecución con solo eliminaciones pasa directamente a la consolidación.
-8. El estado pendiente se consolida como `repository-state.json` únicamente cuando finaliza el pipeline.
+6. SALTBot genera las operaciones y las aplica si `update_wikidata` está activado y el fichero contiene operaciones.
+7. SOCA genera el portal enriquecido en `http://localhost:8030/portals/<project>/` y el portal linked data a partir de `linkeddata_tools`.
+8. `If repo updated` llama a DashVERSE solo si existen assessments nuevos; una ejecución con solo eliminaciones pasa directamente a la consolidación.
+9. El estado pendiente se consolida como `repository-state.json` únicamente cuando finaliza el pipeline.
 
 ---
 
@@ -207,20 +219,22 @@ just check-deps
 - SOCA 0.0.4:
 https://github.com/oeg-upm/soca/releases
 
-- RSFC 0.2.0:
-https://github.com/oeg-upm/rsfc/releases/tag/v0.2.0
+- RSFC 0.2.2:
+https://github.com/oeg-upm/rsfc/releases
 
-- SOMEF 0.11.1:
-https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1
+- SOMEF 0.11.5:
+https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.5
 
 - DASHVERSE 0.3.0: 
 https://github.com/EVERSE-ResearchSoftware/DashVERSE/releases/tag/v0.3.0
 
-- rsmetacheck-bot 0.6.0:
+- rsmetacheck-bot 0.6.2:
 https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases
 
-- RsMetaCheck >=0.3.6:
+- RsMetaCheck >=0.3.8:
 https://github.com/SoftwareUnderstanding/rsmetacheck/releases
+
+- SALTBot y Ollama: enlace de software/artículos y generación local de descripciones.
       
       
 ---
@@ -237,7 +251,7 @@ https://github.com/SoftwareUnderstanding/rsmetacheck/releases
 
    - `RATE_LIMIT_RSFC_ENABLED` poner true/false dependiendo de si se quiere activar el limiter para los workers para peticiones a GitHubAPI
    - `RATE_LIMIT_RESQUI_ENABLED` poner true/false dependiendo de si se quiere activar el limiter para los workers RESQUI para peticiones a GitHubAPI
-   - `RESQUI_CONF` nombre de la configuracion RESQUI a usar desde `containers/resqui_container/resqui_runner/configurations/`, sin extension `.json`. Por ejemplo, `RESQUI_CONF=complete_no_rsfc_superlinter` cargara `complete_no_rsfc_superlinter.json`.
+   - `RESQUI_CONF` nombre de la configuracion RESQUI a usar desde `containers/resqui_container/resqui_runner/configurations/`, sin extension `.json`. Por ejemplo, `RESQUI_CONF=complete_no_rsfc` cargara `complete_no_rsfc.json`.
 
    - `OUTPUTS` la ruta de acceso al directorio a usar como volumen compartido (se debe llamar ``outputs`` y estar dentro del directorio `/containers`)
    - `PORTAL_PORT` puerto del host desde el que Nginx publica los portales SOCA (por defecto `8030`)
@@ -247,6 +261,9 @@ https://github.com/SoftwareUnderstanding/rsmetacheck/releases
       ambos valores corresponden a dashboards por defecto de dashverse
 
    - `DASHVERSE_JWT` token generado por la API de DashVERSE para publicar assessments desde n8n
+   - `WIKIBASE_USER` y `WIKIBASE_PASSWORD`: cuenta y contraseña de bot utilizadas por SALTBot.
+   - `OPENALEX_API_KEY`: clave opcional de OpenAlex para reducir las limitaciones de las peticiones anónimas.
+   - `LLM_MODEL`: nombre del modelo de Ollama, por ejemplo `qwen3.5:4b`.
 
    - `SUPERSET_PUBLIC_DOMAIN` dominio público usado por el navegador para cargar los dashboards. En local se utiliza `http://localhost:8088`.
 
@@ -256,7 +273,7 @@ https://github.com/SoftwareUnderstanding/rsmetacheck/releases
 **A tener en cuenta**:  
 -  El token (classic) se debe obtener desde GitHub y seleccionando el scope 'public_repo'. si no saltará error el uso de ese token. Se puede dejar vacía pero sólo se podrán realizar 50 peticiones por hora a GitHubAPI (no recomendable, muchos repos = error) y no se podrán subir las Issues automáticamente.
 
--  El nº o slug de dashboard es el que aparezca tras importar en DashVERSE la plantilla contenida en `/integrations/dashboard`. Los dashboards deben estar publicados y permitir embebido desde el portal.
+-  El nº o slug de dashboard es el que aparezca tras importar en DashVERSE la plantilla contenida en `/integrations/dashboards`. Los dashboards deben estar publicados y permitir embebido desde el portal.
 
 
 #### 6.2 Instalación/Despliegue del orquestador
@@ -284,11 +301,14 @@ Las imágenes pueden construirse con `scripts/build-docker-images.sh` en WSL/Lin
       - Directorio desde el que crearla: `/containers/resqui_container`
       - Mandato: `docker build -t resqui-heavy .`
    - `rsmetacheck-bot`:
-      - Directorio desde el que crearla: `/integrations/rsmetacheck-bot-0.6.0`
+      - Directorio desde el que crearla: `/integrations/rsmetacheck-bot`
       - Mandato: `docker build -t rsmetacheck-bot .`
    - `rsmetacheck-bot-conf`:
       - Directorio desde el que crearla: `/containers/rsmetacheck-bot_container`
       - Mandato: `docker build -t rsmetacheck-bot-conf .`
+   - `saltbot-heavy`:
+      - Directorio desde el que crearla: `/containers/saltbot_container/SALTBot`
+      - Mandato: `docker build -t saltbot-heavy .`
 
    Estas son las imágenes del orquestador SQOO. Las imágenes propias de DashVERSE (`dashverse/backend` y `dashverse/frontend`) no se construyen con estos scripts: las construye `just deploy` desde `integrations/DashVERSE` usando `minikube image build`.
 
@@ -297,17 +317,22 @@ Las imágenes pueden construirse con `scripts/build-docker-images.sh` en WSL/Lin
    El servicio RESQUI usa el volumen Docker nombrado `sqoo_resqui_work` montado como `/resqui-work`. Este volumen permite que el worker `resqui-heavy` y los contenedores Docker lanzados por los plugins de RESQUI compartan el mismo workspace de trabajo. No debe sustituirse por un bind mount local si se quiere ejecutar RESQUI dentro de Docker con plugins.
 
 3. Acceder a n8n mediante el navegador en http://localhost:5678
+
+   En OEG usar `docker compose -f docker-compose.oeg.yml up -d`, que mantiene n8n con red host. `ollama-init` descarga `LLM_MODEL` en el volumen persistente `ollama_data`; esperar a que termine y comprobarlo con `docker exec ollama ollama list` antes de ejecutar SALTBot.
 4. En el primer acceso:
     1. Crear cuenta de usuario en n8n
     2. Importar los workflows desde `/containers/n8n_container/workflows/`
 5. Importar y usar el workflow modular:
-   - Importar `SQOO_modular_workflow.json` y los subworkflows `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json` y `dashverse_workflow.json`.
+   - Importar `SQOO_modular_workflow.json` y los subworkflows `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json`, `saltbot_workflow.json` y `dashverse_workflow.json`.
    - Despues revisar los nodos `Call '<subworkflow>'` del workflow principal para que apunten a los subworkflows importados en la instancia de n8n.
+   - Revisar también los nombres usados en las expresiones, incluidos los posibles sufijos `V2`.
 6. Editar el nodo inicial de configuración con la organización/usuario deseado:
    - `project`: nombre estable para las salidas y el estado incremental.
    - `organizations`: lista de objetos con `org` y `type` (`org` o `user`).
    - `extra_repositories`: lista opcional de URLs adicionales.
    - `launch_issue`: `true` para publicar issues con `rsmetacheck-bot publish`, `false` para ejecutar solo el análisis de metadatos.
+   - `update_wikidata`: mantener a `false` para revisar las operaciones de SALTBot antes de publicarlas.
+   - `linkeddata_tools`: ruta del YAML del portal linked data dentro del contenedor, por ejemplo `/app/outputs/linkeddata_tools.yml`.
 7. Ejecutar manualmente
 
 Tras ello se obtienen en `outputs` los metadatos SOCA, assessments RSFC y RESQUI, snapshots de rsmetacheck-bot y el portal final. Nginx sirve el portal en `http://localhost:8030/portals/<project>/`.
@@ -503,6 +528,23 @@ just forward_address=0.0.0.0 port-forward
 
 
 
+
+## Uso
+
+En n8n abrir `SQOO_modular_workflow` y configurar el nodo `Conf`. Por ejemplo:
+
+```json
+{
+  "project": "mi-proyecto",
+  "organizations": [{"org": "oeg-upm", "type": "org"}],
+  "extra_repositories": [],
+  "launch_issue": false,
+  "update_wikidata": false,
+  "linkeddata_tools": "/app/outputs/linkeddata_tools.yml"
+}
+```
+
+Preparar ese YAML en `containers/outputs/` y ejecutar el workflow. Los resultados se guardan en `containers/outputs/<componente>/<project>/`, incluidos los de SALTBot. Mantener `launch_issue` y `update_wikidata` a `false` mientras se revisan las salidas.
 
 ## 7. Estudios sobre el proyecto
 

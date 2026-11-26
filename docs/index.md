@@ -16,15 +16,19 @@ SQOO descubre repositorios de GitHub, extrae sus metadatos, evalúa la calidad d
 | RESQUI | Ejecuta evaluaciones configurables de QualityPipelines vendorizado como codigo raw |
 | RabbitMQ | Distribuye trabajos entre workers paralelos |
 | rsmetacheck-bot | Evalúa metadatos e inicia issues opcionales |
+| SALTBot | Enlaza software y artículos y actualiza Wikidata de forma opcional |
+| Ollama | Genera descripciones breves para SALTBot |
 | Nginx | Publica los portales SOCA |
 | DashVERSE | Almacena y visualiza assessments RSFC y RESQUI |
 
 ## Flujo actual
 
-`SQOO_modular_workflow.json` es el workflow principal. Recibe un `project`, organizaciones o usuarios de GitHub, repositorios adicionales y la opción `launch_issue`.
+`SQOO_modular_workflow.json` es el workflow principal. Recibe un `project`, organizaciones o usuarios de GitHub, repositorios adicionales, `launch_issue`, `update_wikidata` y el YAML `linkeddata_tools`.
 
-SOCA compara el inventario actual con el estado anterior. Los repositorios nuevos o modificados se procesan mediante SOCA, RSFC y RESQUI, mientras que los eliminados se retiran de las salidas persistidas. rsmetacheck-bot conserva una snapshot completa, el portal se regenera y DashVERSE solo recibe assessments nuevos.
+SOCA compara el inventario actual con el estado anterior. Los repositorios nuevos o modificados se procesan mediante SOCA, RSFC y RESQUI, mientras que los eliminados se retiran de las salidas persistidas. rsmetacheck-bot conserva una snapshot completa, SALTBot genera las operaciones de enlace, se regeneran los portales y DashVERSE recibe los assessments nuevos.
 
 RESQUI se construye desde `containers/resqui_container/QualityPipelines`, una copia raw de `EVERSE-ResearchSoftware/QualityPipelines` correspondiente al commit upstream `98eb8efb83bd17e8e020bf11e8195b204c9453fd` de `main`.
 
 Consulta [Instalación](instalacion.md) para desplegar el sistema.
+
+El funcionamiento de SALTBot y sus salidas se describe en [SALTBot](saltbot.md).

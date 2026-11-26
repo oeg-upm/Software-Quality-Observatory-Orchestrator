@@ -6,6 +6,7 @@ nav:
   - Home: index.md
   - Development: desarrollo.md
   - Workflow: flujo.md
+  - SALTBot: saltbot.md
   - Requirements: requisitos.md
   - Installation: instalacion.md
   - Evaluations: evaluaciones.md

@@ -14,6 +14,8 @@ En todos los casos, los tiempos reflejan solo el tiempo de ejecución de los wor
 
 Los resultados representan ejecuciones completas. El workflow actual evita repetir SOCA, RSFC y RESQUI para repositorios sin cambios, por lo que sus tiempos no son directamente comparables con una ejecución incremental.
 
+Estas tablas no incluyen SALTBot ni Ollama. Su evaluación debe separar el tiempo de consulta de artículos del de generación de descripciones e indicar el modelo utilizado.
+
 ### Resultados finales
 
 #### SergioZSZ

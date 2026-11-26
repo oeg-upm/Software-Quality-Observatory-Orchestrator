@@ -14,6 +14,7 @@ The objective of the project is to design and implement a reproducible system th
 4. Assesses the quality of software metadata and, if enabled, creates automatic issues on GitHub.
 5. Prepares the information for integration into dashboards (DashVERSE) and catalogs (SOCA).
 6. Allows the entire process to be orchestrated through automated workflows.
+7. Links software to scientific articles and optionally updates Wikidata through SALTBot.
 
 The system is based on the integration and orchestration of existing tools within a decoupled and reproducible architecture.
 
@@ -30,6 +31,8 @@ The system is based on the integration and orchestration of existing tools withi
 | Rate limiters | Control of GitHub requests for RSFC and RESQUI |
 | Nginx | Publication of the SOCA portal |
 | rsmetacheck-bot | Incremental metadata assessment and optional issues |
+| SALTBot | Software and article linking, with optional Wikidata updates |
+| Ollama | Local generation of short descriptions for SALTBot |
 | DashVERSE | Persistence and visualization of assessments |
 
 Each tool runs in its own isolated environment, ensuring:
@@ -44,7 +47,7 @@ Each tool runs in its own isolated environment, ensuring:
 
 ### SOCA
 
-The `soca-heavy` image includes SOCA 0.0.4 and SOMEF 0.11.2. `soca_runner.main` receives a project, GitHub organizations or users, and additional repositories.
+The `soca-heavy` image includes SOCA 0.0.4 and SOMEF 0.11.5. `soca_runner.main` receives a project, GitHub organizations or users, and additional repositories.
 
 The runner maintains `repository-state.json` and separates the inventory into updated and removed repositories. It only publishes jobs for updated repositories; workers extract the metadata in staging and promote the result atomically. A failure preserves the previous result and is reflected in `status.json`.
 
@@ -58,7 +61,7 @@ At the end, `soca_runner.genportal` combines the metadata with the quality resul
 
 ### RSFC
 
-The `rsfc-heavy` image uses RSFC 0.2.0 and reuses SOCA metadata when available. The worker looks for the JSON at `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, passes it to RSFC with `--metadata` and, if it does not exist, runs RSFC with the normal repository analysis. The launcher publishes updated repositories to `rsfc_jobs` and removes outputs from removed repositories.
+The `rsfc-heavy` image uses RSFC 0.2.2 and reuses SOCA metadata when available. The worker looks for the JSON at `outputs/soca/<project>/metadata/<owner>_<repo>_*.json`, passes it to RSFC with `--metadata` and, if it does not exist, runs RSFC with the normal repository analysis. The launcher publishes updated repositories to `rsfc_jobs` and removes outputs from removed repositories.
 
 Each worker:
 
@@ -80,11 +83,17 @@ RESQUI uses the same staging, state and removed-result deletion pattern as RSFC.
 
 ### rsmetacheck-bot
 
-The `rsmetacheck-bot:latest` and `rsmetacheck-bot-conf:latest` images contain rsmetacheck-bot 0.6.1 and the required NLTK/SOMEF resources.
+The `rsmetacheck-bot:latest` and `rsmetacheck-bot-conf:latest` images contain rsmetacheck-bot 0.6.2 and the required NLTK/SOMEF resources.
 
 n8n generates a `config.json` with the complete inventory. The bot locates the previous snapshot, compares commits and copies the artifacts from unchanged repositories. Reports are stored in `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`; this path is kept for compatibility with the SOCA portal even though the executable is now `rsmetacheck-bot`.
 
 `launch_issue` separates analysis from publication: if it is `false`, `rsmetacheck-bot publish` is not called.
+
+### SALTBot
+
+`saltbot-heavy` processes SOMEF metadata from SOCA, finds scientific articles in Wikidata or OpenAlex and generates operations to link them to the software. `status.json` tracks execution and `structured_operations.json` groups operations by repository. A failed repository does not stop the rest of the batch.
+
+`update_wikidata` controls publication. Ollama summarizes long software descriptions and available OpenAlex abstracts, accepting descriptions of up to 250 characters. See [SALTBot](docs/saltbot.md) for filters, outputs and update behavior.
 
 ### DashVERSE and Portal
 
@@ -101,7 +110,7 @@ Dashboard identifiers and the Superset domain are configured with `DASHBOARD_ORG
 
 ## 4. n8n Modular Workflow
 
-`SQOO_modular_workflow.json` is the only main workflow. It orchestrates, in this order, `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json` and `dashverse_workflow.json`.
+`SQOO_modular_workflow.json` is the only main workflow. It orchestrates, in this order, `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json`, `saltbot_workflow.json` and `dashverse_workflow.json`.
 
 The `Conf` node defines:
 
@@ -109,6 +118,8 @@ The `Conf` node defines:
 - `organizations`: GitHub organizations or users, indicating `org` and `type`.
 - `extra_repositories`: additional repositories.
 - `launch_issue`: enables or disables issue publication.
+- `update_wikidata`: enables or disables SALTBot updates to Wikidata.
+- `linkeddata_tools`: YAML file with the repository list for the linked-data portal.
 
 ### Stages
 
@@ -117,9 +128,10 @@ The `Conf` node defines:
 3. Only new or modified repositories go through the SOCA, RSFC and RESQUI workers. Removed repositories are deleted from their persisted outputs.
 4. RSFC and RESQUI store results by `owner_repo` and report batch status through `status.json`; per-repository failures are recorded in `failed_repos` without stopping the pipeline.
 5. rsmetacheck-bot receives the complete inventory, reuses the previous snapshot for unchanged repositories and publishes issues only if `launch_issue` is enabled.
-6. SOCA generates the enriched portal, which Nginx publishes at `http://localhost:8030/portals/<project>/`.
-7. `If repo updated` calls DashVERSE only if new assessments exist; an execution containing only removals goes directly to consolidation.
-8. The pending state is consolidated as `repository-state.json` only when the pipeline finishes.
+6. SALTBot generates linking operations and applies them when `update_wikidata` is enabled and the operation file has content.
+7. SOCA generates the enriched portal at `http://localhost:8030/portals/<project>/` and the linked-data portal from `linkeddata_tools`.
+8. `If repo updated` calls DashVERSE only if new assessments exist; an execution containing only removals goes directly to consolidation.
+9. The pending state is consolidated as `repository-state.json` only when the pipeline finishes.
 
 ## 5. Requirements
 
@@ -181,11 +193,12 @@ just check-deps
 ### Tools Used in the Project
 
 - SOCA 0.0.4: <https://github.com/oeg-upm/soca/releases>
-- RSFC 0.2.0: <https://github.com/oeg-upm/rsfc/releases/tag/v0.2.0>
-- SOMEF 0.11.1: <https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.1>
+- RSFC 0.2.2: <https://github.com/oeg-upm/rsfc/releases>
+- SOMEF 0.11.5: <https://github.com/KnowledgeCaptureAndDiscovery/somef/releases/tag/0.11.5>
 - DashVERSE 0.3.0: <https://github.com/EVERSE-ResearchSoftware/DashVERSE/releases/tag/v0.3.0>
-- rsmetacheck-bot 0.6.1: <https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases>
-- RsMetaCheck >= 0.3.6: <https://github.com/SoftwareUnderstanding/rsmetacheck/releases>
+- rsmetacheck-bot 0.6.2: <https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases>
+- RsMetaCheck >= 0.3.8: <https://github.com/SoftwareUnderstanding/rsmetacheck/releases>
+- SALTBot and Ollama: software/article linking and local description generation.
 
 ## 6. Installation and Deployment
 
@@ -198,20 +211,23 @@ A `.env` file must be created in the `containers` directory containing the envir
 - `RABBITMQ_PASSWORD`: RabbitMQ password set in the `rabbitmq` service of `containers/docker-compose.yml`.
 - `RATE_LIMIT_RSFC_ENABLED`: set to `true` or `false` depending on whether the limiter for workers making GitHub API requests should be enabled.
 - `RATE_LIMIT_RESQUI_ENABLED`: set to `true` or `false` depending on whether the limiter for RESQUI workers making GitHub API requests should be enabled.
-- `RESQUI_CONF`: name of the RESQUI configuration to use from `containers/resqui_container/resqui_runner/configurations/`, without the `.json` extension. For example, `RESQUI_CONF=complete_no_rsfc_superlinter` will load `complete_no_rsfc_superlinter.json`.
+- `RESQUI_CONF`: name of the RESQUI configuration to use from `containers/resqui_container/resqui_runner/configurations/`, without the `.json` extension. For example, `RESQUI_CONF=complete_no_rsfc` will load `complete_no_rsfc.json`.
 - `OUTPUTS`: path to the directory to use as a shared volume. It must be called `outputs` and be inside the `containers` directory.
 - `PORTAL_PORT`: host port from which Nginx publishes the SOCA portals. Default: `8030`.
 - `DASHBOARD_ORG_EMBED_ID`: ID or slug of the global dashboard imported into DashVERSE/Superset. Default: `global`.
 - `DASHBOARD_REPO_EMBED_ID`: ID or slug of the SQO-repo dashboard imported into DashVERSE/Superset. Default: `assessments`.
 - `DASHVERSE_JWT`: token generated by the DashVERSE API to publish assessments from n8n.
 - `SUPERSET_PUBLIC_DOMAIN`: public domain used by the browser to load the dashboards. Locally, `http://localhost:8088` is used.
+- `WIKIBASE_USER` and `WIKIBASE_PASSWORD`: account and bot password used by SALTBot.
+- `OPENALEX_API_KEY`: optional OpenAlex API key to reduce anonymous request limits.
+- `LLM_MODEL`: Ollama model name, for example `qwen3.5:4b`.
 
 `containers/.env.example` contains all required names. Tokens, paths and dashboard identifiers must be replaced.
 
 Keep in mind:
 
 - The classic GitHub token must be obtained with the `public_repo` scope selected. Otherwise, using that token will produce an error. It can be left empty, but only 50 requests per hour can be made to the GitHub API, which is not recommended for many repositories, and issues cannot be created automatically.
-- The dashboard number or slug is the one shown after importing into DashVERSE the template contained in `integrations/dashboard`. Dashboards must be published and allow embedding from the portal.
+- The dashboard number or slug is the one shown after importing into DashVERSE the template contained in `integrations/dashboards`. Dashboards must be published and allow embedding from the portal.
 
 ### 6.2 Orchestrator Installation and Deployment
 
@@ -229,6 +245,7 @@ docker build -t rsfc-heavy containers/rsfc_container
 docker build -t resqui-heavy containers/resqui_container
 docker build -t rsmetacheck-bot integrations/rsmetacheck-bot
 docker build -t rsmetacheck-bot-conf containers/rsmetacheck-bot_container
+docker build -t saltbot-heavy containers/saltbot_container/SALTBot
 ```
 
 These are the SQOO orchestrator images. DashVERSE's own images (`dashverse/backend` and `dashverse/frontend`) are not built with these scripts: `just deploy` builds them from `integrations/DashVERSE` using `minikube image build`.
@@ -242,6 +259,8 @@ docker compose up -d --scale worker_rsfc=N --scale worker_soca=N --scale worker_
 ```
 
 If it is the first deployment, add the `--build` flag.
+
+For OEG, use `docker compose -f docker-compose.oeg.yml up -d`; this keeps n8n on host networking. `ollama-init` downloads `LLM_MODEL` into the persistent `ollama_data` volume. Wait for the download and check it with `docker exec ollama ollama list` before running SALTBot.
 
 The RESQUI service uses the named Docker volume `sqoo_resqui_work` mounted as `/resqui-work`. This volume allows the `resqui-heavy` worker and Docker containers launched by RESQUI plugins to share the same workspace. It should not be replaced with a local bind mount if RESQUI is to be run inside Docker with plugins.
 
@@ -260,9 +279,11 @@ http://localhost:5678
 
 #### 5. Import and use the modular workflow
 
-Import `SQOO_modular_workflow.json` and the subworkflows `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json` and `dashverse_workflow.json`.
+Import `SQOO_modular_workflow.json` and the subworkflows `soca_workflow.json`, `rsfc_workflow.json`, `resqui_workflow.json`, `rsmetacheck-bot_workfow.json`, `saltbot_workflow.json` and `dashverse_workflow.json`.
 
 Then review the `Call '<subworkflow>'` nodes in the main workflow so they point to the subworkflows imported into the n8n instance.
+
+Also check expressions referring to other nodes: their names must match the imported workflows, including any `V2` suffixes.
 
 #### 6. Edit the initial configuration node
 
@@ -272,6 +293,8 @@ Configure the desired organization or user:
 - `organizations`: list of objects with `org` and `type` (`org` or `user`).
 - `extra_repositories`: optional list of additional URLs.
 - `launch_issue`: `true` to publish issues with `rsmetacheck-bot publish`, `false` to run metadata analysis only.
+- `update_wikidata`: keep `false` to review SALTBot operations before publishing them.
+- `linkeddata_tools`: container path to the linked-data portal YAML, for example `/app/outputs/linkeddata_tools.yml`.
 
 #### 7. Run manually
 
@@ -424,7 +447,7 @@ SUPERSET_PUBLIC_DOMAIN=http://localhost:8088
 
 ### 7.9 Reimport dashboards or resynchronize catalog
 
-Reimport Superset dashboards:
+From `integrations/DashVERSE`, reimport Superset dashboards or retry step 10 of `just deploy`:
 
 ```bash
 just setup-dashboards
@@ -491,6 +514,10 @@ Once SQOO is deployed, open n8n at `http://localhost:5678`, select `SQOO_modular
 | `linkeddata_tools` | Container path to the YAML configuration used to generate the linked-data portal. |
 
 Click **Execute workflow** and follow the execution in n8n. Results are written below `containers/outputs/<component>/<project>/`, and the generated portal is available at `http://localhost:8030/portals/<project>/`. Keep `launch_issue` and `update_wikidata` set to `false` unless external writes are intended and the required credentials are configured.
+
+SALTBot can summarize SOMEF descriptions longer than 250 characters through Ollama. Pass `LLM_MODEL` into the SALTBot container and optionally set `OLLAMA_HOST` (default: `http://ollama:11434`); the model must already be available and reachable. Invalid summaries or request failures retain the existing default description. See [deployment configuration](docs/instalacion.md).
+
+Both Compose variants include Ollama, an initializer that downloads `LLM_MODEL` into persistent storage, and the n8n backup mounts. Wait for the model download to finish before running SALTBot; the OEG variant retains host networking for n8n.
 
 ## 9. Studies on the Project
 

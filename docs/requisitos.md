@@ -76,4 +76,8 @@ https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases
 - RsMetaCheck >=0.3.8:
 https://github.com/SoftwareUnderstanding/rsmetacheck/releases
 
-- SALTBot y Ollama: enlace de software/artículos y generación local de descripciones.
+- SALTBot 0.0.1 (última release oficial; adaptación local 0.1.0):
+https://github.com/SoftwareUnderstanding/SALTbot/releases/tag/v0.0.1
+
+- Ollama:
+https://ollama.com/

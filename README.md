@@ -77,8 +77,6 @@ Results are stored in `outputs/rsfc/<project>/<owner>_<repo>/`.
 
 `resqui-heavy` includes QualityPipelines/RESQUI as vendored raw source under `containers/resqui_container/QualityPipelines` and is part of the modular workflow. The local source corresponds to upstream commit `98eb8efb83bd17e8e020bf11e8195b204c9453fd` from `EVERSE-ResearchSoftware/QualityPipelines` `main`. Its workers consume `resqui_jobs`, run the selected configuration and store `resqui_summary.json` in `outputs/resqui/<project>/<owner>_<repo>/`.
 
-The `sqoo_resqui_work` volume allows the worker and plugin containers to share the workspace. `RESQUI_SHARED_WORKDIR` and `RESQUI_DOCKER_WORK_VOLUME` configure this behavior.
-
 RESQUI uses the same staging, state and removed-result deletion pattern as RSFC. The available configurations are located in `containers/resqui_container/resqui_runner/configurations/` and are selected from `containers/.env` with `RESQUI_CONF`, using the filename without the `.json` extension.
 
 ### rsmetacheck-bot
@@ -198,7 +196,8 @@ just check-deps
 - DashVERSE 0.3.0: <https://github.com/EVERSE-ResearchSoftware/DashVERSE/releases/tag/v0.3.0>
 - rsmetacheck-bot 0.6.2: <https://github.com/SoftwareUnderstanding/rsmetacheck-bot/releases>
 - RsMetaCheck >= 0.3.8: <https://github.com/SoftwareUnderstanding/rsmetacheck/releases>
-- SALTBot and Ollama: software/article linking and local description generation.
+- SALTBot 0.0.1 (latest official release; local adaptation 0.1.0): <https://github.com/SoftwareUnderstanding/SALTbot/releases/tag/v0.0.1>
+- Ollama: <https://ollama.com/>
 
 ## 6. Installation and Deployment
 
@@ -261,8 +260,6 @@ docker compose up -d --scale worker_rsfc=N --scale worker_soca=N --scale worker_
 If it is the first deployment, add the `--build` flag.
 
 For OEG, use `docker compose -f docker-compose.oeg.yml up -d`; this keeps n8n on host networking. `ollama-init` downloads `LLM_MODEL` into the persistent `ollama_data` volume. Wait for the download and check it with `docker exec ollama ollama list` before running SALTBot.
-
-The RESQUI service uses the named Docker volume `sqoo_resqui_work` mounted as `/resqui-work`. This volume allows the `resqui-heavy` worker and Docker containers launched by RESQUI plugins to share the same workspace. It should not be replaced with a local bind mount if RESQUI is to be run inside Docker with plugins.
 
 #### 3. Access n8n
 

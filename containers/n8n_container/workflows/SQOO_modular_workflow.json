@@ -1,5 +1,5 @@
 {
-  "name": "SQOO_modular_workflowV2",
+  "name": "SQOO_modular_workflow",
   "nodes": [
     {
       "parameters": {
@@ -90,7 +90,7 @@
           "conditions": [
             {
               "id": "ef2eaf4b-4dac-46be-b341-6bd264f17be2",
-              "leftValue": "={{ $node[\"Call \\'soca_workflowV2\\'\"].json.repo_count }}",
+              "leftValue": "={{ $node[\"Call 'soca_workflow'\"].json.repo_count }}",
               "rightValue": 0,
               "operator": {
                 "type": "number",
@@ -120,14 +120,14 @@
           "value": "DwuwkPLrcxE0wrpD",
           "mode": "list",
           "cachedResultUrl": "/workflow/DwuwkPLrcxE0wrpD",
-          "cachedResultName": "sw-metadata-bot_workfowV2"
+          "cachedResultName": "rsmetacheck-bot_workfow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "repo_count": "={{ $node[\"Call 'soca_workflowV2'\"].json.all_repo_count }}",
-            "repos_url": "={{ $node[\"Call 'soca_workflowV2'\"].json.all_repos_url }}",
-            "project": "={{ $node[\"Call 'soca_workflowV2'\"].json.project }}",
+            "repo_count": "={{ $node[\"Call 'soca_workflow'\"].json.all_repo_count }}",
+            "repos_url": "={{ $node[\"Call 'soca_workflow'\"].json.all_repos_url }}",
+            "project": "={{ $node[\"Call 'soca_workflow'\"].json.project }}",
             "launch_issue": "={{ $node[\"Conf\"].json.launch_issue }}"
           },
           "matchingColumns": [],
@@ -185,7 +185,7 @@
         208
       ],
       "id": "863c6fac-2f01-45d9-9bd0-785084037620",
-      "name": "Call 'sw-metadata-bot_workfowV2'"
+      "name": "Call 'rsmetacheck-bot_workfow'"
     },
     {
       "parameters": {
@@ -194,7 +194,7 @@
           "value": "pR4pAZ1LG98ttbt2",
           "mode": "list",
           "cachedResultUrl": "/workflow/pR4pAZ1LG98ttbt2",
-          "cachedResultName": "soca_workflowV2"
+          "cachedResultName": "soca_workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -248,7 +248,7 @@
         224
       ],
       "id": "0dda2e14-8ea9-433c-9c79-90f868dc270e",
-      "name": "Call 'soca_workflowV2'"
+      "name": "Call 'soca_workflow'"
     },
     {
       "parameters": {
@@ -270,13 +270,13 @@
           "value": "aZk0CtXlt3O68wi5",
           "mode": "list",
           "cachedResultUrl": "/workflow/aZk0CtXlt3O68wi5",
-          "cachedResultName": "dashverse_workflowV2"
+          "cachedResultName": "dashverse_workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "repo_count": "={{ $node[\"Call 'rsfc_workflowV2'\"].json.repo_count }}",
-            "repos_url": "={{ $node[\"Call 'rsfc_workflowV2'\"].json.repos_url }}",
+            "repo_count": "={{ $node[\"Call 'rsfc_workflow'\"].json.repo_count }}",
+            "repos_url": "={{ $node[\"Call 'rsfc_workflow'\"].json.repos_url }}",
             "project": "={{ $node[\"Conf\"].json.project }}"
           },
           "matchingColumns": [],
@@ -324,7 +324,7 @@
         192
       ],
       "id": "f607dd37-e8c1-4d23-8b8a-1205a2a6554f",
-      "name": "Call 'dashverse_workflowV2'"
+      "name": "Call 'dashverse_workflow'"
     },
     {
       "parameters": {
@@ -350,7 +350,7 @@
           "value": "E6fvoYmSt41Kydea",
           "mode": "list",
           "cachedResultUrl": "/workflow/E6fvoYmSt41Kydea",
-          "cachedResultName": "resqui_workflowV2"
+          "cachedResultName": "resqui_workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -437,7 +437,7 @@
         208
       ],
       "id": "e906292e-8f0b-4d11-8550-0e845984e0ff",
-      "name": "Call 'resqui_workflowV2'"
+      "name": "Call 'resqui_workflow'"
     },
     {
       "parameters": {
@@ -446,7 +446,7 @@
           "value": "16xxgMVPHhjtSIYi",
           "mode": "list",
           "cachedResultUrl": "/workflow/16xxgMVPHhjtSIYi",
-          "cachedResultName": "rsfc_workflowV2"
+          "cachedResultName": "rsfc_workflow"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -533,7 +533,7 @@
         208
       ],
       "id": "ab240cb8-2acd-472c-88e5-c9ecc4f5dbe9",
-      "name": "Call 'rsfc_workflowV2'"
+      "name": "Call 'rsfc_workflow'"
     },
     {
       "parameters": {
@@ -549,11 +549,11 @@
           "value": {
             "update_wikidata": "={{ $node[\"Conf\"].json.update_wikidata }}",
             "project": "={{ $node[\"Conf\"].json.project }}",
-            "repo_count": "={{ $node[\"Call 'soca_workflowV2'\"].json.repo_count }}",
-            "removed_count": "={{ $node[\"Call 'soca_workflowV2'\"].json.removed_count }}",
-            "repos_url": "={{ $node[\"Call 'soca_workflowV2'\"].json.all_repos_url }}",
-            "repos_removed": "={{ $node[\"Call 'soca_workflowV2'\"].json.repos_removed }}",
-            "has_changes": "={{ $node[\"Call 'soca_workflowV2'\"].json.has_changes === true || String($json.has_changes).trim().toLowerCase() === 'true' }}"
+            "repo_count": "={{ $node[\"Call 'soca_workflow'\"].json.repo_count }}",
+            "removed_count": "={{ $node[\"Call 'soca_workflow'\"].json.removed_count }}",
+            "repos_url": "={{ $node[\"Call 'soca_workflow'\"].json.repos_url }}",
+            "repos_removed": "={{ $node[\"Call 'soca_workflow'\"].json.repos_removed }}",
+            "has_changes": "={{ $node[\"Call 'soca_workflow'\"].json.has_changes === true || String($json.has_changes).trim().toLowerCase() === 'true' }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -649,7 +649,7 @@
       "main": [
         [
           {
-            "node": "Call 'soca_workflowV2'",
+            "node": "Call 'soca_workflow'",
             "type": "main",
             "index": 0
           }
@@ -671,7 +671,7 @@
       "main": [
         [
           {
-            "node": "Call 'rsfc_workflowV2'",
+            "node": "Call 'rsfc_workflow'",
             "type": "main",
             "index": 0
           }
@@ -689,7 +689,7 @@
       "main": [
         [
           {
-            "node": "Call 'dashverse_workflowV2'",
+            "node": "Call 'dashverse_workflow'",
             "type": "main",
             "index": 0
           }
@@ -703,7 +703,7 @@
         ]
       ]
     },
-    "Call 'sw-metadata-bot_workfowV2'": {
+    "Call 'rsmetacheck-bot_workfow'": {
       "main": [
         [
           {
@@ -714,7 +714,7 @@
         ]
       ]
     },
-    "Call 'soca_workflowV2'": {
+    "Call 'soca_workflow'": {
       "main": [
         [
           {
@@ -736,7 +736,7 @@
         ]
       ]
     },
-    "Call 'dashverse_workflowV2'": {
+    "Call 'dashverse_workflow'": {
       "main": [
         [
           {
@@ -758,22 +758,22 @@
         ]
       ]
     },
-    "Call 'resqui_workflowV2'": {
+    "Call 'resqui_workflow'": {
       "main": [
         [
           {
-            "node": "Call 'sw-metadata-bot_workfowV2'",
+            "node": "Call 'rsmetacheck-bot_workfow'",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Call 'rsfc_workflowV2'": {
+    "Call 'rsfc_workflow'": {
       "main": [
         [
           {
-            "node": "Call 'resqui_workflowV2'",
+            "node": "Call 'resqui_workflow'",
             "type": "main",
             "index": 0
           }

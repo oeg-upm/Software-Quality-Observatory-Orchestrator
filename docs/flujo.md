@@ -66,7 +66,7 @@ Las snapshots se guardan en `outputs/sw-metadata-bot/<project>/runs/<snapshot>/`
 
 `describe` se lanza en segundo plano. n8n espera 30 segundos a que exista `status.json` y consulta su estado hasta que termina. SALTBot guarda las operaciones y los errores por repositorio; si el fichero de operaciones tiene contenido y `update_wikidata` es `true`, ejecuta `update`. Más detalles en [SALTBot](saltbot.md).
 
-Para la primera ejecución se puede enviar el inventario completo (`all_repos_url`); para las siguientes, el lote actualizado (`repos_url`). La selección depende del campo conectado a la llamada del subworkflow.
+La llamada a SALTBot del workflow principal usa `repos_url` de SOCA para procesar solo repositorios nuevos o modificados. Para una primera ejecución sobre todo el inventario se puede conectar temporalmente `all_repos_url`.
 
 ## 5. Portales
 

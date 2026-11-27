@@ -32,3 +32,5 @@ RESQUI se construye desde `containers/resqui_container/QualityPipelines`, una co
 Consulta [Instalación](instalacion.md) para desplegar el sistema.
 
 El funcionamiento de SALTBot y sus salidas se describe en [SALTBot](saltbot.md).
+
+La llamada a SALTBot recibe `repos_url` de SOCA y revisa solo los repositorios nuevos o modificados.

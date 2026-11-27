@@ -87,6 +87,8 @@ Acceder a `http://localhost:5678` e importar:
 
 Revisar los nodos `Call '<subworkflow>'` para que apunten a los workflows importados y los nombres de las expresiones que los referencian, incluidos los posibles sufijos `V2`.
 
+El workflow principal usa nombres sin `V2` y envía a SALTBot el lote actualizado de SOCA (`repos_url`). Comprobar también los workflows seleccionados en cada llamada al importar el JSON.
+
 En el nodo `Conf` configurar:
 
 ```json

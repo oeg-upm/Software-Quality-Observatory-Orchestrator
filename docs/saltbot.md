@@ -37,6 +37,10 @@ Un repositorio fallido no detiene el resto del lote. n8n comprueba que exista `s
 
 Mantener `update_wikidata: false` mientras se revisa el resultado. Con `true`, se ejecuta `update` si `operation_list.txt` tiene contenido. El updater conserva los ficheros de entrada y registra los errores y las esperas de Wikidata, incluido `maxlag`.
 
+Las peticiones de creación y guardado se separan al menos 15 segundos por proceso, también tras un fallo, para mantener unas cuatro escrituras por minuto. Los statements se agrupan por entidad; la pausa se aplica a cada escritura, no a cada tripleta.
+
+Los errores de la API de MediaWiki muestran también `code`, `info` y `messages`, junto con la acción y la entidad, para identificar advertencias de filtros y otros motivos de rechazo.
+
 Para las pruebas se pueden preparar ficheros con los statements que falten y sus QID existentes. Las operaciones `create` generan entidades nuevas; no deben usarse para modificar entidades ya creadas.
 
 ## Configuración

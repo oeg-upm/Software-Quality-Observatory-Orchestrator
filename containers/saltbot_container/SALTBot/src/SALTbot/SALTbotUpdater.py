@@ -1,4 +1,5 @@
 import ast
+import json
 import logging
 import re
 import time
@@ -8,11 +9,12 @@ from wikibaseintegrator import wbi_helpers
 from wikibaseintegrator.datatypes import ExternalID, Item, MonolingualText, String, URL
 from wikibaseintegrator.models import Qualifiers
 from wikibaseintegrator.wbi_enums import ActionIfExists
+from wikibaseintegrator.wbi_exceptions import MWApiError
 
 
 DATATYPES = {"Item": Item, "URL": URL, "ExternalID": ExternalID,
              "String": String, "MonolingualText": MonolingualText}
-WIKIDATA_WRITE_INTERVAL = 15  # seconds; below the 5 writes/minute limit for new accounts
+WIKIDATA_WRITE_INTERVAL = 5  # seconds; below the 5 writes/minute limit for new accounts
 _last_wikidata_write = None
 
 
@@ -120,6 +122,11 @@ def runRequest(action, target, request, **kwargs):
     logger.addFilter(context)
     try:
         return request(**kwargs)
+    except MWApiError as error:
+        for field in ("code", "info", "messages"):
+            value = json.dumps(getattr(error, field, None), ensure_ascii=False)
+            click.echo(f"[ERROR {action} {target}] {field}: {value}", err=True)
+        raise
     finally:
         logger.removeFilter(context)
 

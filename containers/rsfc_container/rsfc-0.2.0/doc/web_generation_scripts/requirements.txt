@@ -1,7 +1,0 @@
-
-rdflib
-isodate
-Markdown
-pyparsing
-pystache
-requests

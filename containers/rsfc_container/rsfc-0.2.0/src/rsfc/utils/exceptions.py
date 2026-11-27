@@ -1,2 +1,0 @@
-class GithubRateLimitExceeded(Exception):
-    pass

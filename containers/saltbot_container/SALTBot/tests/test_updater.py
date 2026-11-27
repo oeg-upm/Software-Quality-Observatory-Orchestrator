@@ -10,6 +10,7 @@ import pytest
 from click.testing import CliRunner
 from wikibaseintegrator.datatypes import Item
 from wikibaseintegrator.models import Claims
+from wikibaseintegrator.wbi_exceptions import MWApiError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from SALTbot import SALTbotUpdater as updater
@@ -224,6 +225,32 @@ def test_wait_messages_have_context_and_filter_is_restored(monkeypatch, caplog):
     assert "retry=1" in caplog.text and "elapsed=5.0s" in caplog.text
     assert "sleeping for 60 seconds" in caplog.text
     assert logger.filters == filters
+
+
+@pytest.mark.parametrize("action", ["LOGIN", "LOAD", "CREATE", "SAVE"])
+def test_mediawiki_error_details_are_logged_and_original_error_is_preserved(action, capsys):
+    logger = logging.getLogger("wikibaseintegrator.wbi_helpers")
+    filters = list(logger.filters)
+    messages = [{"name": "abusefilter-warning", "parameters": ["Bulk item creation by new editor"],
+                 "html": {"*": "Aviso de creación de entidades"}}]
+    error = MWApiError({"code": "failed-save", "info": "The save has failed.", "messages": messages})
+    with pytest.raises(MWApiError) as raised:
+        updater.runRequest(action, "Example", Mock(side_effect=error))
+    assert raised.value is error
+    output = capsys.readouterr()
+    assert f"[ERROR {action} Example] code: \"failed-save\"" in output.err
+    assert 'info: "The save has failed."' in output.err
+    assert 'messages:' in output.err and 'abusefilter-warning' in output.err
+    assert "Aviso de creación de entidades" in output.err
+    assert logger.filters == filters
+
+
+def test_non_mediawiki_errors_keep_existing_handling(capsys):
+    error = RuntimeError("write rejected")
+    with pytest.raises(RuntimeError) as raised:
+        updater.runRequest("SAVE", "Q123", Mock(side_effect=error))
+    assert raised.value is error
+    assert capsys.readouterr().err == ""
 
 
 def test_write_requests_are_spaced_but_reads_are_not(monkeypatch, capsys):

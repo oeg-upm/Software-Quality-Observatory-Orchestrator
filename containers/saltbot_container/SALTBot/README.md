@@ -105,6 +105,8 @@ Prepared statements are saved together per entity. Creation and save requests ar
 
 Wait messages include the action (`LOGIN`, `LOAD`, `CREATE` or `SAVE`), target, observed retry count and elapsed seconds, followed by WikibaseIntegrator's original reason and pause. Existing retry limits and `maxlag` remain unchanged. The updater does not provide automatic resumption or general duplicate prevention. Use offline tests first and run real writes separately, since Wikidata can impose long waits.
 
+MediaWiki API errors also print `code`, `info` and `messages` to stderr with the action and target, preserving the original exception so detailed filter warnings and save failures remain visible.
+
  ## Citation
  If you use SALTbot, please use the following citation:
  ```
